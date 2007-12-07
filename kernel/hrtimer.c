@@ -925,6 +925,14 @@ hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim, unsigned long delta_n
 #ifdef CONFIG_TIME_LOW_RES
 		tim = ktime_add_safe(tim, base->resolution);
 #endif
+		/*
+		 * Careful here: User space might have asked for a
+		 * very long sleep, so the add above might result in a
+		 * negative number, which enqueues the timer in front
+		 * of the queue.
+		 */
+		if (tim.tv64 < 0)
+			tim.tv64 = KTIME_MAX;
 	}
 
 	hrtimer_set_expires_range_ns(timer, tim, delta_ns);

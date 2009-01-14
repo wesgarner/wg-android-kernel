@@ -195,7 +195,6 @@ __mutex_lock_common(struct mutex *lock, long state, unsigned int subclass,
 
 		if (atomic_cmpxchg(&lock->count, 1, 0) == 1) {
 			lock_acquired(&lock->dep_map, ip);
-			mutex_set_owner(lock);
 			preempt_enable();
 			return 0;
 		}
@@ -262,7 +261,6 @@ done:
 	lock_acquired(&lock->dep_map, ip);
 	/* got the lock - rejoice! */
 	mutex_remove_waiter(lock, &waiter, current_thread_info());
-	mutex_set_owner(lock);
 
 	/* set it to 0 if there are no waiters left: */
 	if (likely(list_empty(&lock->wait_list)))
@@ -438,10 +436,8 @@ static inline int __mutex_trylock_slowpath(atomic_t *lock_count)
 	spin_lock_mutex(&lock->wait_lock, flags);
 
 	prev = atomic_xchg(&lock->count, -1);
-	if (likely(prev == 1)) {
-		mutex_set_owner(lock);
+	if (likely(prev == 1))
 		mutex_acquire(&lock->dep_map, 0, 1, _RET_IP_);
-	}
 
 	/* Set it back to 0 if there are no waiters: */
 	if (likely(list_empty(&lock->wait_list)))

@@ -1403,7 +1403,7 @@ msmsdcc_suspend(struct platform_device *dev, pm_message_t state)
 		if (host->stat_irq)
 			disable_irq(host->stat_irq);
 
-		if (mmc->card && mmc->card->type != MMC_TYPE_SDIO)
+		if (!mmc->card || mmc->card->type != MMC_TYPE_SDIO)
 			rc = mmc_suspend_host(mmc, state);
 		if (!rc)
 			msmsdcc_writel(host, 0, MMCIMASK0);
@@ -1425,7 +1425,7 @@ msmsdcc_resume(struct platform_device *dev)
 
 		msmsdcc_writel(host, host->saved_irq0mask, MMCIMASK0);
 
-		if (mmc->card && mmc->card->type != MMC_TYPE_SDIO)
+		if (!mmc->card || mmc->card->type != MMC_TYPE_SDIO)
 #ifdef CONFIG_MMC_MSM7X00A_RESUME_IN_WQ
 			schedule_work(&host->resume_task);
 #else

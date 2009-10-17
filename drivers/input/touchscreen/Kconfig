@@ -216,6 +216,15 @@ config TOUCHSCREEN_SYNAPTICS_I2C_RMI
 	help
 	  This enables support for Synaptics RMI over I2C based touchscreens.
 
+config TOUCHSCREEN_SYNAPTICS_I2C_RMI_ANDROID
+	bool "Enable Android version of the Synaptics i2c touchscreen driver"
+	depends on TOUCHSCREEN_SYNAPTICS_I2C_RMI
+	default y
+	---help---
+	  This enables the compatibility with Android
+	  If you use An android userland,say Y.
+	  If you say N the driver will present a tslib interface.
+
 config TOUCHSCREEN_TOUCHRIGHT
 	tristate "Touchright serial touchscreen"
 	select SERIO

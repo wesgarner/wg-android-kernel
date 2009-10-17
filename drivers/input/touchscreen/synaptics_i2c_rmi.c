@@ -196,7 +196,13 @@ static void synaptics_ts_work_func(struct work_struct *work)
 					input_report_abs(ts->input_dev, ABS_X, pos[0][0]);
 					input_report_abs(ts->input_dev, ABS_Y, pos[0][1]);
 				}
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_ANDROID
 				input_report_abs(ts->input_dev, ABS_PRESSURE, z);
+#else
+				input_report_abs(ts->input_dev, ABS_PRESSURE, (finger?255:0) );
+#endif
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_ANDROID
 				input_report_abs(ts->input_dev, ABS_TOOL_WIDTH, w);
 				input_report_key(ts->input_dev, BTN_TOUCH, finger);
 				finger2_pressed = finger > 1 && finger != 7;
@@ -225,6 +231,7 @@ static void synaptics_ts_work_func(struct work_struct *work)
 					input_mt_sync(ts->input_dev);
 				}
 				ts->reported_finger_count = finger;
+#endif
 				input_sync(ts->input_dev);
 			}
 		}
@@ -501,6 +508,7 @@ static int synaptics_ts_probe(
 	input_set_abs_params(ts->input_dev, ABS_X, -inactive_area_left, max_x + inactive_area_right, fuzz_x, 0);
 	input_set_abs_params(ts->input_dev, ABS_Y, -inactive_area_top, max_y + inactive_area_bottom, fuzz_y, 0);
 	input_set_abs_params(ts->input_dev, ABS_PRESSURE, 0, 255, fuzz_p, 0);
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_ANDROID
 	input_set_abs_params(ts->input_dev, ABS_TOOL_WIDTH, 0, 15, fuzz_w, 0);
 	input_set_abs_params(ts->input_dev, ABS_HAT0X, -inactive_area_left, max_x + inactive_area_right, fuzz_x, 0);
 	input_set_abs_params(ts->input_dev, ABS_HAT0Y, -inactive_area_top, max_y + inactive_area_bottom, fuzz_y, 0);
@@ -508,6 +516,7 @@ static int synaptics_ts_probe(
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, -inactive_area_top, max_y + inactive_area_bottom, fuzz_y, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, fuzz_p, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 15, fuzz_w, 0);
+#endif
 	/* ts->input_dev->name = ts->keypad_info->name; */
 	ret = input_register_device(ts->input_dev);
 	if (ret) {

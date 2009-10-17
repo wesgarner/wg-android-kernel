@@ -628,7 +628,11 @@ static void setup_fb_info(struct msmfb_info *msmfb)
 	fb_info->var.width = msmfb->panel->fb_data->width;
 	fb_info->var.height = msmfb->panel->fb_data->height;
 	fb_info->var.xres_virtual = msmfb->xres;
+#ifdef CONFIG_FB_MSM_DOUBLE_BUFFER
 	fb_info->var.yres_virtual = msmfb->yres * 2;
+#else
+	fb_info->var.yres_virtual = msmfb->yres;
+#endif
 	fb_info->var.bits_per_pixel = BITS_PER_PIXEL;
 	fb_info->var.accel_flags = 0;
 

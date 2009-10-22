@@ -1150,6 +1150,14 @@ static struct platform_driver sapphire_backlight_driver = {
 	},
 };
 
+static struct resource resources_msm_fb_smi32[] = {
+	{
+		.start = SMI32_MSM_FB_BASE,
+		.end = SMI32_MSM_FB_BASE + SMI32_MSM_FB_SIZE - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
 static struct resource resources_msm_fb[] = {
 	{
 		.start = SMI64_MSM_FB_BASE,
@@ -1244,9 +1252,8 @@ int __init sapphire_init_panel(void)
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &config, 0);
 
 	/* setup FB by SMI size */
-	if (sapphire_get_smi_size() == 32) {
-		resources_msm_fb[0].start = SMI32_MSM_FB_BASE;
-		resources_msm_fb[0].end = SMI32_MSM_FB_BASE + SMI32_MSM_FB_SIZE - 1;
+	if (32 == sapphire_get_smi_size()) {
+		mddi_pdata.fb_resource = resources_msm_fb_smi32;
 	}
 
 	rc = platform_device_register(&msm_device_mdp);

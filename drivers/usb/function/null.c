@@ -106,6 +106,8 @@ static struct usb_function usb_func_null = {
 
 	.ifc_ept_count = 1,
 	.ifc_ept_type = { EPT_BULK_OUT },
+
+	.position_bit = USB_FUNCTION_NULL_NUM,
 };
 
 static int __init null_init(void)

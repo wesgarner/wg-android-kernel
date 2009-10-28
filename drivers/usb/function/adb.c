@@ -424,6 +424,7 @@ static struct usb_function usb_func_adb = {
 	.ifc_ept_type = { EPT_BULK_OUT, EPT_BULK_IN },
 
 	/* the adb function is only enabled when its driver file is open */
+	.position_bit = USB_FUNCTION_ADB_NUM,
 	.disabled = 1,
 };
 

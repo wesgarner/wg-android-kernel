@@ -117,6 +117,8 @@ static struct usb_function usb_func_loopback = {
 
 	.ifc_ept_count = 2,
 	.ifc_ept_type = { EPT_BULK_OUT, EPT_BULK_IN },
+
+	.position_bit = USB_FUNCTION_LOOPBACK_NUM,
 };
 
 static int __init loopback_init(void)

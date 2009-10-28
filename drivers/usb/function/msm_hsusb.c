@@ -53,17 +53,13 @@
 #define STRING_SERIAL           1
 #define STRING_PRODUCT          2
 #define STRING_MANUFACTURER     3
+#define STRING_ENABLED_START	4
+#define STRING_DISABLED_START	(STRING_ENABLED_START + 32)
 
 #define LANGUAGE_ID             0x0409 /* en-US */
 
 /* current state of VBUS */
 static int vbus;
-
-struct usb_fi_ept
-{
-	struct usb_endpoint *ept;
-	struct usb_endpoint_descriptor desc;
-};
 
 struct usb_function_info
 {
@@ -109,6 +105,8 @@ struct usb_endpoint
 	*/
 	unsigned char bit;
 	unsigned char num;
+
+	unsigned char type;
 
 	unsigned short max_pkt;
 
@@ -162,7 +160,13 @@ struct usb_info
 
 	/* used for allocation */
 	unsigned next_item;
-	unsigned next_ifc_num;
+
+	uint32_t enabled_functions;
+	uint32_t included_functions;
+
+	unsigned ifc_num;
+	unsigned ifc_map_to_host[32];
+	unsigned ifc_map_to_driver[64];
 
 	/* endpoints are ordered based on their status bits,
 	** so they are OUT0, OUT1, ... OUT15, IN0, IN1, ... IN15
@@ -192,7 +196,7 @@ struct usb_device_descriptor desc_device = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
 
-	.bcdUSB = 0x0102,
+	.bcdUSB = 0x0200,
 	.bDeviceClass = 0,
 	.bDeviceSubClass = 0,
 	.bDeviceProtocol = 0,
@@ -206,8 +210,6 @@ struct usb_device_descriptor desc_device = {
 	.iSerialNumber = 0,
 	.bNumConfigurations = 1,
 };
-
-static uint32_t enabled_functions = 0;
 
 static void flush_endpoint(struct usb_endpoint *ept);
 
@@ -290,7 +292,7 @@ static void configure_endpoints(struct usb_info *ui)
 	unsigned n;
 	unsigned cfg;
 
-	for (n = 0; n < 31; n++) {
+	for (n = 0; n < 32; n++) {
 		struct usb_endpoint *ept = ui->ept + n;
 
 		cfg = CONFIG_MAX_PKT(ept->max_pkt) | CONFIG_ZLT;
@@ -315,7 +317,7 @@ static struct usb_endpoint *alloc_endpoint(struct usb_info *ui,
 					   unsigned kind)
 {
 	unsigned n;
-	for (n = 0; n < 31; n++) {
+	for (n = 0; n < 32; n++) {
 		struct usb_endpoint *ept = ui->ept + n;
 		if (ept->num == 0)
 			continue;
@@ -327,10 +329,18 @@ static struct usb_endpoint *alloc_endpoint(struct usb_info *ui,
 				ept->max_pkt = 512;
 				ept->owner = owner;
 				return ept;
+			} else if (kind == EPT_INT_IN) {
+				ept->max_pkt = 64;
+				ept->owner = owner;
+				return ept;
 			}
 		} else {
 			if (kind == EPT_BULK_OUT) {
 				ept->max_pkt = 512;
+				ept->owner = owner;
+				return ept;
+			} else if (kind == EPT_INT_OUT) {
+				ept->max_pkt = 64;
 				ept->owner = owner;
 				return ept;
 			}
@@ -343,7 +353,7 @@ static struct usb_endpoint *alloc_endpoint(struct usb_info *ui,
 static void free_endpoints(struct usb_info *ui, struct usb_function_info *owner)
 {
 	unsigned n;
-	for (n = 0; n < 31; n++) {
+	for (n = 0; n < 32; n++) {
 		struct usb_endpoint *ept = ui->ept + n;
 		if (ept->owner == owner) {
 			ept->owner = 0;
@@ -413,26 +423,38 @@ static void usb_ept_enable(struct usb_endpoint *ept, int yes)
 {
 	struct usb_info *ui = ept->ui;
 	int in = ept->flags & EPT_FLAG_IN;
+	unsigned char type = ept->type;
 	unsigned n;
 
 	if (yes) {
-		if (ui->speed == USB_SPEED_HIGH)
-			ept->max_pkt = 512;
-		else
+		if (ui->speed == USB_SPEED_HIGH) {
+			if (type == EPT_BULK_IN || type == EPT_BULK_OUT) {
+				ept->max_pkt = 512;
+			} else {
+				ept->max_pkt = 64;
+			}
+		} else {
 			ept->max_pkt = 64;
+		}
 	}
 
 	n = readl(USB_ENDPTCTRL(ept->num));
 
 	if (in) {
-		n = (n & (~CTRL_TXT_MASK)) | CTRL_TXT_BULK;
+		if (type == EPT_BULK_IN)
+			n = (n & (~CTRL_TXT_MASK)) | CTRL_TXT_BULK;
+		else if (type == EPT_INT_IN)
+			n = (n & (~CTRL_TXT_MASK)) | CTRL_TXT_INT;
 		if (yes) {
 			n |= CTRL_TXE | CTRL_TXR;
 		} else {
 			n &= (~CTRL_TXE);
 		}
 	} else {
-		n = (n & (~CTRL_RXT_MASK)) | CTRL_RXT_BULK;
+		if (type == EPT_BULK_OUT)
+			n = (n & (~CTRL_RXT_MASK)) | CTRL_RXT_BULK;
+		else if (type == EPT_INT_OUT)
+			n = (n & (~CTRL_RXT_MASK)) | CTRL_RXT_INT;
 		if (yes) {
 			n |= CTRL_RXE | CTRL_RXR;
 		} else {
@@ -715,37 +737,39 @@ static void handle_setup(struct usb_info *ui)
 	if ((ctl.bRequestType & USB_TYPE_MASK) != USB_TYPE_STANDARD) {
 		/* let functions handle vendor and class requests */
 
-		int i;
-		for (i = 0; i < ui->num_funcs; i++) {
+		if (/*ctl.wIndex >= 0 &&*/ ctl.wIndex < ui->ifc_num) {
+			int i = ui->ifc_map_to_driver[ctl.wIndex];
 			struct usb_function_info *fi = ui->func[i];
 
-			if (fi->func->setup) {
-				if (ctl.bRequestType & USB_DIR_IN) {
-					/* IN request */
-					struct usb_request *req = ui->setup_req;
+			if (!fi->enabled)
+				goto bad_setup_request;
 
-					int ret = fi->func->setup(&ctl,
-						req->buf,
-						SETUP_BUF_SIZE,
-						fi->func->context);
-					if (ret >= 0) {
-						req->length = ret;
-						ep0_setup_send(ui, ctl.wLength);
-						return;
-					}
-				} else {
-					/* OUT request */
-					/* FIXME - support reading setup
-					 * data from host.
-					 */
-					int ret = fi->func->setup(&ctl, NULL, 0,
-							fi->func->context);
-					if (ret >= 0) goto ack;
+			if (ctl.bRequestType & USB_DIR_IN) {
+				/* IN request */
+				struct usb_request *req = ui->setup_req;
+
+				int ret = fi->func->setup(&ctl,
+					req->buf,
+					SETUP_BUF_SIZE,
+					fi->func->context);
+				if (ret >= 0) {
+					req->length = ret;
+					ep0_setup_send(ui, ctl.wLength);
+					return;
 				}
+			} else {
+				/* OUT request */
+				/* FIXME - support reading setup
+				 * data from host.
+				 */
+				int ret = fi->func->setup(&ctl, NULL, 0,
+						fi->func->context);
+				if (ret >= 0) goto ack;
 			}
 		}
 	}
 
+bad_setup_request:
 	ep0_setup_stall(ui);
 	return;
 
@@ -968,7 +992,9 @@ static void usb_prepare(struct usb_info *ui)
 	/* only important for reset/reinit */
 	memset(ui->ept, 0, sizeof(ui->ept));
 	ui->next_item = 0;
-	ui->next_ifc_num = 0;
+	ui->ifc_num = 0;
+	ui->enabled_functions = 0;
+	ui->included_functions = 0;
 
 	init_endpoints(ui);
 
@@ -996,7 +1022,7 @@ static void usb_bind_driver(struct usb_info *ui, struct usb_function_info *fi)
 {
 	struct usb_endpoint *ept;
 	struct usb_endpoint_descriptor *ed;
-	struct usb_endpoint *elist[8];
+	struct usb_endpoint *elist[10];
 	struct usb_function *func = fi->func;
 	unsigned n, count;
 
@@ -1009,12 +1035,14 @@ static void usb_bind_driver(struct usb_info *ui, struct usb_function_info *fi)
 
 	fi->ifc.bLength = USB_DT_INTERFACE_SIZE;
 	fi->ifc.bDescriptorType = USB_DT_INTERFACE;
+	/* Set while building the descriptor - see usb_find_descriptor */
+	fi->ifc.bInterfaceNumber = 0;
 	fi->ifc.bAlternateSetting = 0;
-	fi->ifc.bNumEndpoints = count;
+	fi->ifc.bNumEndpoints = count != 2 ? 1 : count;
 	fi->ifc.bInterfaceClass = func->ifc_class;
 	fi->ifc.bInterfaceSubClass = func->ifc_subclass;
 	fi->ifc.bInterfaceProtocol = func->ifc_protocol;
-	fi->ifc.iInterface = 0;
+	fi->ifc.iInterface = func->ifc_name ? (STRING_ENABLED_START + func->position_bit) : 0;
 
 	for (n = 0; n < count; n++) {
 		ept = alloc_endpoint(ui, fi, func->ifc_ept_type[n]);
@@ -1029,14 +1057,19 @@ static void usb_bind_driver(struct usb_info *ui, struct usb_function_info *fi)
 		ed->bLength = USB_DT_ENDPOINT_SIZE;
 		ed->bDescriptorType = USB_DT_ENDPOINT;
 		ed->bEndpointAddress = ept->num | ((ept->flags & EPT_FLAG_IN) ? 0x80 : 0);
-		ed->bmAttributes = 0x02; /* XXX hardcoded bulk */
+		ed->bmAttributes =
+			(func->ifc_ept_type[n] ==
+				EPT_INT_IN || func->ifc_ept_type[n] ==
+				EPT_INT_OUT) ? 0x03 : 0x02;
 		ed->bInterval = 0; /* XXX hardcoded bulk */
 
 		elist[n] = ept;
+		ept->type = func->ifc_ept_type[n];
 		fi->ept[n].ept = ept;
 	}
 
-	fi->ifc.bInterfaceNumber = ui->next_ifc_num++;
+	elist[count] = &ui->ep0in;
+	elist[count + 1] = &ui->ep0out;
 
 	fi->endpoints = count;
 
@@ -1058,6 +1091,12 @@ static void usb_reset(struct usb_info *ui)
 	msleep(2);
 #endif
 
+	/* disable usb interrupts */
+	writel(0, USB_USBINTR);
+
+	/* wait for a while after enable usb clk*/
+	msleep(5);
+
 	/* RESET */
 	writel(2, USB_USBCMD);
 	msleep(10);
@@ -1066,7 +1105,8 @@ static void usb_reset(struct usb_info *ui)
 		ui->phy_reset();
 
 	/* INCR4 BURST mode */
-	writel(0x01, USB_SBUSCFG);
+	/*boost performance to fix CRC error.*/
+	writel(0x02, USB_SBUSCFG);
 
 	/* select DEVICE mode */
 	writel(0x12, USB_USBMODE);
@@ -1145,6 +1185,14 @@ static struct usb_function_info *usb_find_function(const char *name)
 	return NULL;
 }
 
+struct usb_fi_ept *get_ept_info(const char *function)
+{
+	struct usb_function_info *fi = usb_find_function(function);
+	if (!fi)
+		return NULL;
+	return &fi->ept[0];
+}
+
 static void usb_try_to_bind(void)
 {
 	struct usb_info *ui = the_usb_info;
@@ -1197,7 +1245,15 @@ int usb_function_register(struct usb_function *driver)
 
 fail:
 	mutex_unlock(&usb_function_list_lock);
-	return 0;
+	return ret;
+}
+
+int return_usb_function_enabled(const char *function)
+{
+	struct usb_function_info *fi = usb_find_function(function);
+	if (!fi)
+		return -EINVAL;
+	return fi->enabled;
 }
 
 void usb_function_enable(const char *function, int enable)
@@ -1585,7 +1641,7 @@ static int __init usb_init(void)
 
 module_init(usb_init);
 
-static void copy_string_descriptor(char *string, char *buffer)
+static void copy_string_descriptor(const char *string, char *buffer)
 {
 	int length, i;
 
@@ -1600,10 +1656,84 @@ static void copy_string_descriptor(char *string, char *buffer)
 	}
 }
 
+static const char string_descriptor_disabled[] = " \0(\0d\0i\0s\0a\0b\0l\0e\0d\0)\0\0";
+static void string_descriptor_append_disabled(char *buffer)
+{
+	if (buffer[0] < 2) {
+		buffer[0] = 2;
+		buffer[1] = USB_DT_STRING;
+		buffer[2] = 0;
+		buffer[3] = 0;
+	}
+
+	memcpy(buffer + buffer[0], string_descriptor_disabled, sizeof(string_descriptor_disabled));
+	buffer[0] += sizeof(string_descriptor_disabled) - 2;
+}
+
+static char *copy_ifc_descriptors(char *buf, size_t len, struct usb_info *ui, int i)
+{
+	struct usb_function_info *fi = ui->func[i];
+	int j, n;
+	char *ptr = buf;
+
+	/* check to see if the function was enabled when we
+	** received the USB_DT_DEVICE request to make ensure
+	** that the interfaces we return here match the
+	** product ID we returned in the USB_DT_DEVICE.
+	*/
+	if (ui->included_functions & BIT(fi->func->position_bit)) {
+		if (!(ui->enabled_functions & BIT(fi->func->position_bit))) {
+			for (j = 0; j < fi->func->ifc_num || j < 1; j++) {
+				/* Copy a disabled interface */
+				struct usb_interface_descriptor *ifc = (struct usb_interface_descriptor *)ptr;
+
+				if (unlikely(len < (ptr - buf + USB_DT_INTERFACE_SIZE)))
+					return buf;
+
+				ifc->bLength = USB_DT_INTERFACE_SIZE;
+				ifc->bDescriptorType = USB_DT_INTERFACE;
+				ifc->bInterfaceNumber = ui->ifc_map_to_host[i];
+				ifc->bAlternateSetting = 0;
+				ifc->bNumEndpoints = 0;
+				ifc->bInterfaceClass = 0;
+				ifc->bInterfaceSubClass = 0;
+				ifc->bInterfaceProtocol = 0;
+				ifc->iInterface = fi->func->ifc_name ? (STRING_DISABLED_START + fi->func->position_bit) : 0;
+
+				ptr += ifc->bLength;
+			}
+		} else {
+			/* Copy the real interface */
+			if (fi->func->ifc_copy) {
+				ptr += fi->func->ifc_copy(ptr, len - (ptr - buf), ui->ifc_map_to_host[i]);
+			} else {
+				if (unlikely(len < (ptr - buf + fi->ifc.bLength)))
+					return buf;
+
+				memcpy(ptr, &fi->ifc, fi->ifc.bLength);
+
+				/* Fixup interface number */
+				ptr[2/*bInterfaceNumber*/] = ui->ifc_map_to_host[i];
+
+				ptr += fi->ifc.bLength;
+
+				for (n = 0; n < fi->endpoints; n++) {
+					/* XXX hardcoded bulk */
+					fi->ept[n].desc.wMaxPacketSize = fi->ept[n].ept->max_pkt;
+					memcpy(ptr, &(fi->ept[n].desc), fi->ept[n].desc.bLength);
+					ptr += fi->ept[n].desc.bLength;
+				}
+			}
+		}
+	}
+
+	return ptr;
+}
+
 static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_request *req)
 {
 	struct msm_hsusb_platform_data *pdata = ui->pdev->dev.platform_data;
-	int i;
+	int i, j;
 	unsigned type = id >> 8;
 	id &= 0xff;
 
@@ -1616,24 +1746,57 @@ static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_requ
 		** USB_DT_DEVICE matches the list of interfaces we
 		** return for USB_DT_CONFIG.
 		*/
-		enabled_functions = 0;
+		ui->enabled_functions = 0;
+		ui->included_functions = (uint32_t)-1;
 		for (i = 0; i < ui->num_funcs; i++) {
 			struct usb_function_info *fi = ui->func[i];
 			if (fi->enabled)
-				enabled_functions |= (1 << i);
+				ui->enabled_functions |= (1 << fi->func->position_bit);
+		}
+
+		if (ui->enabled_functions & BIT(USB_FUNCTION_INTERNET_SHARING_NUM)) {
+#ifdef CONFIG_USB_FUNCTION_RNDIS_WCEIS
+			desc_device.bDeviceClass = USB_CLASS_WIRELESS_CONTROLLER;
+			desc_device.bDeviceSubClass = 1;
+			desc_device.bDeviceProtocol = 3;
+#else
+			desc_device.bDeviceClass = USB_CLASS_COMM;
+			desc_device.bDeviceSubClass = 0;
+			desc_device.bDeviceProtocol = 0;
+#endif
+		} else {
+			desc_device.bDeviceClass = 0;
+			desc_device.bDeviceSubClass = 0;
+			desc_device.bDeviceProtocol = 0;
 		}
 
 		/* default product ID */
 		desc_device.idProduct = pdata->product_id;
+
 		/* set idProduct based on which functions are enabled */
 		for (i = 0; i < pdata->num_products; i++) {
-			
-			if (pdata->products[i].functions == enabled_functions) {
+			if ((pdata->products[i].functions & ui->enabled_functions) == ui->enabled_functions) {
 				struct msm_hsusb_product *product =
 					&pdata->products[i];
-				if (product->functions == enabled_functions)
-					desc_device.idProduct = 
-						product->product_id;
+				desc_device.idProduct = 
+					product->product_id;
+				ui->included_functions = pdata->products[i].functions;
+				break;
+			}
+		}
+
+		if (ui->included_functions != ui->enabled_functions)
+			printk(KERN_WARNING "msm_hsusb: No exact match for %x, using product id %04x with %x\n", ui->enabled_functions, desc_device.idProduct, ui->included_functions);
+
+		/* Build a host->driver interface number map
+		   and driver function number->host interface number map */
+		ui->ifc_num = 0;
+		for (i = 0; i < ui->num_funcs; i++) {
+			struct usb_function_info *fi = ui->func[i];
+			if (ui->included_functions & BIT(fi->func->position_bit)) {
+				ui->ifc_map_to_host[i] = ui->ifc_num;
+				for (j = 0; j < fi->func->ifc_num || j < 1; j++)
+					ui->ifc_map_to_driver[ui->ifc_num++] = i;
 			}
 		}
 
@@ -1645,38 +1808,15 @@ static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_requ
 	if ((type == USB_DT_CONFIG) && (id == 0)) {
 		struct usb_config_descriptor cfg;
 		unsigned ifc_count = 0;
-		unsigned n;
 		char *ptr, *start;
-		int max_packet;
 
-		if (ui->speed == USB_SPEED_HIGH)
-			max_packet = 512;
-		else
-			max_packet = 64;
 		start = req->buf;
 		ptr = start + USB_DT_CONFIG_SIZE;
 
 		for (i = 0; i < ui->num_funcs; i++) {
 			struct usb_function_info *fi = ui->func[i];
-
-			/* check to see if the function was enabled when we
-			** received the USB_DT_DEVICE request to make ensure
-			** that the interfaces we return here match the
-			** product ID we returned in the USB_DT_DEVICE.
-			*/
-			if (enabled_functions & (1 << i)) {
-				ifc_count++;
-
-				memcpy(ptr, &fi->ifc, fi->ifc.bLength);
-				ptr += fi->ifc.bLength;
-
-				for (n = 0; n < fi->endpoints; n++) {
-					/* XXX hardcoded bulk */
-					fi->ept[n].desc.wMaxPacketSize = max_packet;
-					memcpy(ptr, &(fi->ept[n].desc), fi->ept[n].desc.bLength);
-					ptr += fi->ept[n].desc.bLength;
-				}
-			}
+			ptr = copy_ifc_descriptors(ptr, SETUP_BUF_SIZE - (ptr - start), ui, i);
+			ifc_count += fi->func->ifc_num ? fi->func->ifc_num : 1;
 		}
 
 		cfg.bLength = USB_DT_CONFIG_SIZE;
@@ -1703,7 +1843,7 @@ static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_requ
 			/* return language ID */
 			buffer[0] = 4;
 			buffer[1] = USB_DT_STRING;
-			buffer[2] = LANGUAGE_ID;
+			buffer[2] = LANGUAGE_ID & 0xff;
 			buffer[3] = LANGUAGE_ID >> 8;
 			break;
 		case STRING_SERIAL:
@@ -1715,6 +1855,27 @@ static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_requ
 		case STRING_MANUFACTURER:
 			copy_string_descriptor(pdata->manufacturer_name, buffer);
 			break;
+		default: {
+			int disabled = 0;
+			if (id >= STRING_DISABLED_START) {
+				id = id - STRING_DISABLED_START + STRING_ENABLED_START;
+				disabled = 1;
+			}
+
+			if (id >= STRING_ENABLED_START) {
+				for (i = 0; i < ui->num_funcs; i++) {
+					struct usb_function_info *fi = ui->func[i];
+					if ((id - STRING_ENABLED_START) == fi->func->position_bit && fi->func->ifc_name) {
+						copy_string_descriptor(fi->func->ifc_name, buffer);
+						if (disabled) string_descriptor_append_disabled(buffer);
+						break;
+					}
+				}
+				break;
+			}
+
+			break;
+			}
 		}
 
 		if (buffer[0]) {

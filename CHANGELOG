@@ -2,7 +2,7 @@ Swap-enabled (plus working CC)
 Deadline I/O Scheduler (FIFO=1)
 Setup Group Scheduler for Deadline
 Using Tree-based hierarchial RCU
-CPUFreq Setup
+CPUFreq Setup (with 45% CPU upspeed threshold)
 Enabled Preemptible Kernel
 WLAN.ko is compiled with Kernel Modules
 USB Function has Ethernet Tether

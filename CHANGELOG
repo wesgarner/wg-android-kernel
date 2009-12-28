@@ -1,0 +1,13 @@
+Swap-enabled (plus working CC)
+Deadline I/O Scheduler (FIFO=1)
+Setup Group Scheduler for Deadline
+Using Tree-based hierarchial RCU
+CPUFreq Setup
+Enabled Preemptible Kernel
+WLAN.ko is compiled with Kernel Modules
+USB Function has Ethernet Tether
+WiFi Tether Enabled
+SquashFS is a module instead of built-in
+Added AUFS Module
+Added NTFS Support Read/Write Support (for Flash Drives using NTFS)
+Disabled Kernel Debugging (for faster usage)

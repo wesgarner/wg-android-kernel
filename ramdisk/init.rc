@@ -172,7 +172,7 @@ on boot
     setprop ro.EMPTY_APP_MEM 6144
 
 #Power Management Settings
-    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold 45
+    write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold 35
     write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate 46875
 
 # Write value must be consistent with the above properties.
@@ -182,6 +182,7 @@ on boot
 
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
+    write /proc/sys/vm/page-cluster 0
     write /sys/module/lowmemorykiller/parameters/minfree 1536,2048,4096,5120,5632,6144
 
     # Set init its forked children's oom_adj.

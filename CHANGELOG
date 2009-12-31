@@ -1,13 +1,18 @@
-Swap-enabled (plus working CC)
-Deadline I/O Scheduler (FIFO=1)
-Setup Group Scheduler for Deadline
-Using Tree-based hierarchial RCU
-CPUFreq Setup (with 45% CPU upspeed threshold)
-Enabled Preemptible Kernel
-WLAN.ko is compiled with Kernel Modules
-USB Function has Ethernet Tether
-WiFi Tether Enabled
-SquashFS is a module instead of built-in
-Added AUFS Module
-Added NTFS Support Read/Write Support (for Flash Drives using NTFS)
-Disabled Kernel Debugging (for faster usage)
+Kernel Updates in Build Y:
+CFS/BFS Options & RHack/NoRhack Options
+   * Swap-enabled (plus working CC)
+   * Deadline I/O Scheduler (FIFO=1)
+   * Setup Group Scheduler for Deadline (CFS-Only)
+   * Using Tree-based hierarchial RCU
+   * CPUFreq Setup (with 45% CPU upspeed threshold)
+   * Enabled Preemptible Kernel
+   * WLAN.ko is compiled with Kernel Modules
+   * USB Function has Ethernet Tether
+   * WiFi Tether Enabled
+   * No unneeded modules such as SquashFS, CramFS, HID-Dummy, etc etc etc
+   * IPV6 is included in kernel
+   * EXT3 runs on EXT4 Drivers, EXT2 runs on old drivers
+   * Disabled Kernel Debugging (for faster usage)
+
+Kernel Updates Post Y Release:
+   * QoS Data Scheduling

@@ -16,9 +16,10 @@
 
 #include <mach/board.h>
 
-#define MSM_SMI_BASE		0x00000000
-#define MSM_SMI_SIZE		0x00800000
+#define MSM_SMI_BASE			0x00000000
+#define MSM_SMI_SIZE			0x00800000
 
+<<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 <<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 #define MSM_EBI_BASE		0x10000000
 #define MSM_EBI_SIZE		0x06e00000
@@ -33,15 +34,19 @@
 =======
 #define MSM_PMEM_GPU0_BASE	0x00000000
 #define MSM_PMEM_GPU0_SIZE	0x00700000
+=======
+#define MSM_PMEM_GPU0_BASE		0x00000000
+#define MSM_PMEM_GPU0_SIZE		0x00700000
+>>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-sapphire.h
 
 #if defined(CONFIG_MSM_AMSS_SUPPORT_256MB_EBI1)
 /* AMSS supports unified 128/256MB EBI1 */
-#define MSM_EBI_BASE				0x19200000
+#define MSM_EBI_BASE			0x19200000
 #define MSM_EBI_SMI64_128MB_SIZE	0x06600000
 #define MSM_EBI_SMI32_256MB_SIZE	0x0C600000
 
-#define SMI64_MSM_FB_BASE			0x00700000
-#define SMI64_MSM_FB_SIZE			0x0009B000
+#define SMI64_MSM_FB_BASE		0x00700000
+#define SMI64_MSM_FB_SIZE		0x0009B000
 
 #define SMI64_MSM_RAM_CONSOLE_BASE	0x007A0000
 #define SMI64_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
@@ -49,8 +54,12 @@
 #define SMI64_MSM_PMEM_MDP_BASE		0x02000000
 #define SMI64_MSM_PMEM_MDP_SIZE		0x00800000
 
+<<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 #define SMI64_MSM_PMEM_ADSP_BASE    0x02800000
 >>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-sapphire.h
+=======
+#define SMI64_MSM_PMEM_ADSP_BASE	0x02800000
+>>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-sapphire.h
 #define SMI64_MSM_PMEM_ADSP_SIZE	0x00800000
 
 #define SMI64_MSM_PMEM_CAMERA_BASE	0x03000000
@@ -63,8 +72,8 @@
 #define SMI64_MSM_PMEM_GPU1_BASE	0x1F800000
 #define SMI64_MSM_PMEM_GPU1_SIZE	0x800000
 
-#define SMI32_MSM_FB_BASE			0x00700000
-#define SMI32_MSM_FB_SIZE			0x0009B000
+#define SMI32_MSM_FB_BASE		0x00700000
+#define SMI32_MSM_FB_SIZE		0x0009B000
 
 #define SMI32_MSM_RAM_CONSOLE_BASE	0x007A0000
 #define SMI32_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
@@ -83,15 +92,19 @@
 
 #else
 /* AMSS supports only 128MB EBI1. */
-#define MSM_EBI_BASE				0x10000000
+#define MSM_EBI_BASE			0x10000000
+#define MSM_EBI_SIZE			0x06E00000
 
-#define SMI64_MSM_FB_BASE			0x00700000
-#define SMI64_MSM_FB_SIZE			0x00100000
+#define SMI64_MSM_FB_BASE		0x00700000
+#define SMI64_MSM_FB_SIZE		0x0009B000
+
+#define SMI64_MSM_RAM_CONSOLE_BASE	0x007A0000
+#define SMI64_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
 
 #define SMI64_MSM_PMEM_MDP_BASE		0x02000000
 #define SMI64_MSM_PMEM_MDP_SIZE		0x00800000
 
-#define SMI64_MSM_PMEM_ADSP_BASE    0x02800000
+#define SMI64_MSM_PMEM_ADSP_BASE	0x02800000
 #define SMI64_MSM_PMEM_ADSP_SIZE	0x00800000
 
 #define SMI64_MSM_PMEM_CAMERA_BASE	0x03000000
@@ -99,8 +112,9 @@
 >>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-sapphire.h
 
 #define SMI64_MSM_LINUX_BASE		MSM_EBI_BASE
-#define SMI64_MSM_LINUX_SIZE		0x06500000
+#define SMI64_MSM_LINUX_SIZE		0x06E00000	// 110*1024*1024
 
+<<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 <<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 =======
 #define SMI64_MSM_RAM_CONSOLE_BASE	MSM_EBI_BASE + 0x06D00000
@@ -109,6 +123,10 @@
 #define SMI64_MSM_PMEM_GPU1_SIZE	0x800000
 #define SMI64_MSM_PMEM_GPU1_BASE	(SMI64_MSM_RAM_CONSOLE_BASE - SMI64_MSM_PMEM_GPU1_SIZE)
 >>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-sapphire.h
+=======
+#define SMI64_MSM_PMEM_GPU1_SIZE	0
+#define SMI64_MSM_PMEM_GPU1_BASE	0
+>>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-sapphire.h
 
 #define SMI32_MSM_LINUX_BASE		MSM_EBI_BASE
 #define SMI32_MSM_LINUX_SIZE		0x5400000
@@ -120,12 +138,17 @@
 #define SMI32_MSM_PMEM_ADSP_SIZE	0x800000
 
 <<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
+<<<<<<< HEAD:arch/arm/mach-msm/board-sapphire.h
 #define SMI32_MSM_FB_BASE		SMI32_MSM_PMEM_ADSP_BASE + SMI32_MSM_PMEM_ADSP_SIZE
 #define SMI32_MSM_FB_SIZE		0x9b000
 =======
 #define SMI32_MSM_FB_BASE			(SMI32_MSM_PMEM_ADSP_BASE + SMI32_MSM_PMEM_ADSP_SIZE)
 #define SMI32_MSM_FB_SIZE			0x9b000
 >>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-sapphire.h
+=======
+#define SMI32_MSM_FB_BASE		(SMI32_MSM_PMEM_ADSP_BASE + SMI32_MSM_PMEM_ADSP_SIZE)
+#define SMI32_MSM_FB_SIZE		0x9b000
+>>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-sapphire.h
 
 
 #define MSM_PMEM_GPU1_SIZE	0x800000

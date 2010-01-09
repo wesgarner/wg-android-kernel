@@ -425,6 +425,7 @@ static struct platform_device *devices[] __initdata = {
 	&msm_device_uart3,
 #endif
 	&msm_device_smd,
+	&msm_device_dmov,
 	&msm_device_nand,
 	&msm_device_hsusb,
 #ifdef CONFIG_USB_FUNCTION_MASS_STORAGE

@@ -271,6 +271,11 @@ struct platform_device msm_device_smd = {
 	.id	= -1,
 };
 
+struct platform_device msm_device_dmov = {
+	.name	= "msm_dmov",
+	.id	= -1,
+};
+
 static struct resource resources_sdc1[] = {
 	{
 		.start	= MSM_SDC1_PHYS,

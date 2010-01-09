@@ -1759,6 +1759,10 @@ static void yaffs_SoftDeleteFile(yaffs_Object *obj)
  * level 0 tnode entries must be zeroed out.
  * Could also use this for file deletion, but that's probably better handled
  * by a special case.
+ *
+ * This function is recursive. For levels > 0 the function is called again on
+ * any sub-tree. For level == 0 we just check if the sub-tree has data.
+ * If there is no data in a subtree then it is pruned.
  */
 
 static yaffs_Tnode *yaffs_PruneWorker(yaffs_Device *dev, yaffs_Tnode *tn,
@@ -1770,17 +1774,32 @@ static yaffs_Tnode *yaffs_PruneWorker(yaffs_Device *dev, yaffs_Tnode *tn,
 	if (tn) {
 		hasData = 0;
 
-		for (i = 0; i < YAFFS_NTNODES_INTERNAL; i++) {
-			if (tn->internal[i] && level > 0) {
-				tn->internal[i] =
-				    yaffs_PruneWorker(dev, tn->internal[i],
-						      level - 1,
-						      (i == 0) ? del0 : 1);
-			}
+		if(level > 0){
+			for (i = 0; i < YAFFS_NTNODES_INTERNAL; i++) {
+				if (tn->internal[i]) {
+					tn->internal[i] =
+						yaffs_PruneWorker(dev, tn->internal[i],
+							level - 1,
+							(i == 0) ? del0 : 1);
+				}
 
-			if (tn->internal[i])
-				hasData++;
-		}
+				if (tn->internal[i])
+					hasData++;
+			}
+		} else {
+			int tnodeSize;
+			__u32 *map = (__u32 *)tn;
+			tnodeSize = (dev->tnodeWidth * YAFFS_NTNODES_LEVEL0)/8;
+
+			if (tnodeSize < sizeof(yaffs_Tnode))
+				tnodeSize = sizeof(yaffs_Tnode);
+			tnodeSize /= sizeof(__u32);
+
+                        for(i = 0; !hasData && i < tnodeSize; i++){
+                                if(map[i])
+                                        hasData++;
+                        }
+                }
 
 		if (hasData == 0 && del0) {
 			/* Free and return NULL */

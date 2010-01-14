@@ -168,7 +168,7 @@ on boot
     setprop ro.BACKUP_APP_MEM 2048
     setprop ro.HOME_APP_MEM 2048
     setprop ro.HIDDEN_APP_MEM 4192
-    setprop ro.CONTENT_PROVIDER_MEM 4192
+    setprop ro.CONTENT_PROVIDER_MEM 4592
     setprop ro.EMPTY_APP_MEM 6144
 
 #Power Management Settings
@@ -183,7 +183,7 @@ on boot
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
     write /proc/sys/vm/page-cluster 0
-    write /sys/module/lowmemorykiller/parameters/minfree 1024,1536,2048,2716,4192,6144
+    write /sys/module/lowmemorykiller/parameters/minfree 1024,1536,2048,4192,4592,6144
 
     # Set init its forked children's oom_adj.
     write /proc/1/oom_adj -16

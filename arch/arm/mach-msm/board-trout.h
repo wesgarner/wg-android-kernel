@@ -6,94 +6,28 @@
 
 #include <mach/board.h>
 
-#define MSM_SMI_BASE		0x00000000
-#define MSM_SMI_SIZE		0x00800000
+#define MSM_SMI_BASE			0x00000000
+#define MSM_SMI_SIZE			0x00800000
 
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-#define MSM_EBI_BASE		0x10000000
-#define MSM_EBI_SIZE		0x06e00000
-
-#define MSM_PMEM_GPU0_BASE	0x00000000
-#define MSM_PMEM_GPU0_SIZE	0x00700000
-
-#define MSM_PMEM_MDP_BASE	0x02000000
-#define MSM_PMEM_MDP_SIZE	0x00800000
-=======
-=======
->>>>>>> 368c365... rebase kernel:arch/arm/mach-msm/board-trout.h
-//#define MSM_EBI_BASE		0x10000000
-//#define MSM_EBI_SIZE		0x06e00000
-
-#define MSM_PMEM_GPU0_BASE	0x00000000
-#define MSM_PMEM_GPU0_SIZE	0x00700000
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-=======
 #define MSM_PMEM_GPU0_BASE		0x00000000
 #define MSM_PMEM_GPU0_SIZE		0x00700000
->>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-trout.h
-=======
->>>>>>> 368c365... rebase kernel:arch/arm/mach-msm/board-trout.h
 
 #if defined(CONFIG_MSM_AMSS_SUPPORT_256MB_EBI1)
 /* AMSS supports unified 128/256MB EBI1 */
-#define MSM_EBI_BASE				0x19200000
+#define MSM_EBI_BASE			0x19200000
 #define MSM_EBI_SMI64_128MB_SIZE	0x06600000
 #define MSM_EBI_SMI32_256MB_SIZE	0x0C600000
 
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-#define SMI64_MSM_FB_BASE			0x00700000
-#define SMI64_MSM_FB_SIZE			0x0009B000
->>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-trout.h
-=======
 #define SMI64_MSM_FB_BASE		0x00700000
 #define SMI64_MSM_FB_SIZE		0x0009B000
->>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-trout.h
-=======
-#define SMI64_MSM_FB_BASE			0x00700000
-#define SMI64_MSM_FB_SIZE			0x0009B000
->>>>>>> 368c365... rebase kernel:arch/arm/mach-msm/board-trout.h
 
-#define MSM_PMEM_ADSP_BASE      0x02800000
-#define MSM_PMEM_ADSP_SIZE	0x00800000
+#define SMI64_MSM_RAM_CONSOLE_BASE	0x007A0000
+#define SMI64_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
 
-#define MSM_PMEM_CAMERA_BASE	0x03000000
-#define MSM_PMEM_CAMERA_SIZE	0x00800000
+#define SMI64_MSM_PMEM_MDP_BASE		0x02000000
+#define SMI64_MSM_PMEM_MDP_SIZE		0x00800000
 
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-#define MSM_FB_BASE		0x03800000
-#define MSM_FB_SIZE		0x00100000
-=======
-#define SMI64_MSM_PMEM_ADSP_BASE    0x02800000
-=======
 #define SMI64_MSM_PMEM_ADSP_BASE	0x02800000
->>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-trout.h
-#define SMI64_MSM_PMEM_ADSP_SIZE	0x00800000
->>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-trout.h
-
-#define MSM_LINUX_BASE		MSM_EBI_BASE
-#define MSM_LINUX_SIZE		0x06500000
-
-#define MSM_PMEM_GPU1_SIZE	0x800000
-#define MSM_PMEM_GPU1_BASE	MSM_RAM_CONSOLE_BASE - MSM_PMEM_GPU1_SIZE
-
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-<<<<<<< HEAD:arch/arm/mach-msm/board-trout.h
-#define MSM_RAM_CONSOLE_BASE	MSM_EBI_BASE + 0x6d00000
-#define MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
-=======
-#define SMI32_MSM_FB_BASE			0x00700000
-#define SMI32_MSM_FB_SIZE			0x0009B000
-=======
-#define SMI32_MSM_FB_BASE		0x00700000
-#define SMI32_MSM_FB_SIZE		0x0009B000
->>>>>>> 1e213de... 	modified:   arch/arm/mach-msm/board-sapphire.h:arch/arm/mach-msm/board-trout.h
-=======
-#define SMI64_MSM_PMEM_ADSP_BASE    0x02800000
 #define SMI64_MSM_PMEM_ADSP_SIZE	0x00800000
 
 #define SMI64_MSM_PMEM_CAMERA_BASE	0x03000000
@@ -102,9 +36,8 @@
 #define SMI64_MSM_PMEM_GPU1_BASE	0x1F800000
 #define SMI64_MSM_PMEM_GPU1_SIZE	0x800000
 
-#define SMI32_MSM_FB_BASE			0x00700000
-#define SMI32_MSM_FB_SIZE			0x0009B000
->>>>>>> 368c365... rebase kernel:arch/arm/mach-msm/board-trout.h
+#define SMI32_MSM_FB_BASE		0x00700000
+#define SMI32_MSM_FB_SIZE		0x0009B000
 
 #define SMI32_MSM_RAM_CONSOLE_BASE	0x007A0000
 #define SMI32_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
@@ -124,11 +57,14 @@
 #else
 
 /* AMSS supports only 128MB EBI1. */
-#define MSM_EBI_BASE		0x10000000
-#define MSM_EBI_SIZE		0x06E00000
+#define MSM_EBI_BASE			0x10000000
+#define MSM_EBI_SIZE			0x06E00000
 
-#define SMI64_MSM_FB_BASE		0x03800000
-#define SMI64_MSM_FB_SIZE		0x00100000
+#define SMI64_MSM_FB_BASE		0x00700000
+#define SMI64_MSM_FB_SIZE		0x0009B000
+
+#define SMI64_MSM_RAM_CONSOLE_BASE	0x007A0000
+#define SMI64_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
 
 #define SMI64_MSM_PMEM_MDP_BASE		0x02000000
 #define SMI64_MSM_PMEM_MDP_SIZE		0x00800000
@@ -139,14 +75,11 @@
 #define SMI64_MSM_PMEM_CAMERA_BASE	0x03000000
 #define SMI64_MSM_PMEM_CAMERA_SIZE	0x00800000
 
-#define SMI64_MSM_PMEM_GPU1_SIZE	0x00800000
-#define SMI64_MSM_PMEM_GPU1_BASE	(SMI64_MSM_RAM_CONSOLE_BASE - SMI64_MSM_PMEM_GPU1_SIZE)
+#define SMI64_MSM_PMEM_GPU1_SIZE	0
+#define SMI64_MSM_PMEM_GPU1_BASE	0
 
 #define SMI64_MSM_LINUX_BASE		MSM_EBI_BASE
-#define SMI64_MSM_LINUX_SIZE		0x06500000
-
-#define SMI64_MSM_RAM_CONSOLE_BASE	(MSM_EBI_BASE + 0x6D00000)
-#define SMI64_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
+#define SMI64_MSM_LINUX_SIZE		0x06E00000	// 110*1024*1024
 
 #define SMI32_MSM_LINUX_BASE		MSM_EBI_BASE
 #define SMI32_MSM_LINUX_SIZE		0x5400000
@@ -157,8 +90,8 @@
 #define SMI32_MSM_PMEM_ADSP_BASE	(SMI32_MSM_PMEM_MDP_BASE + SMI32_MSM_PMEM_MDP_SIZE)
 #define SMI32_MSM_PMEM_ADSP_SIZE	0x800000
 
-#define SMI32_MSM_FB_BASE			(SMI32_MSM_PMEM_ADSP_BASE + SMI32_MSM_PMEM_ADSP_SIZE)
-#define SMI32_MSM_FB_SIZE			0x9b000
+#define SMI32_MSM_FB_BASE		(SMI32_MSM_PMEM_ADSP_BASE + SMI32_MSM_PMEM_ADSP_SIZE)
+#define SMI32_MSM_FB_SIZE		0x9b000
 
 #define SMI32_MSM_RAM_CONSOLE_BASE	(MSM_EBI_BASE + 0x6d00000)
 #define SMI32_MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
@@ -168,39 +101,9 @@
 
 #define SMI32_MSM_PMEM_CAMERA_BASE	0
 #define SMI32_MSM_PMEM_CAMERA_SIZE	0
->>>>>>> 923a784... removed CC from dir:arch/arm/mach-msm/board-trout.h
 
-#if (MSM_FB_BASE + MSM_FB_SIZE) >= (MSM_PMEM_GPU1_BASE)
-#error invalid memory map
 #endif
 
-/*
-#define MSM_PMEM_MDP_BASE	0x02000000
-#define MSM_PMEM_MDP_SIZE	0x00800000
-
-#define MSM_PMEM_ADSP_BASE      0x02800000
-#define MSM_PMEM_ADSP_SIZE	0x00800000
-
-#define MSM_PMEM_CAMERA_BASE	0x03000000
-#define MSM_PMEM_CAMERA_SIZE	0x00800000
-
-#define MSM_FB_BASE		0x03800000
-#define MSM_FB_SIZE		0x00100000
-
-#define MSM_LINUX_BASE		MSM_EBI_BASE
-#define MSM_LINUX_SIZE		0x06500000
-
-#define MSM_PMEM_GPU1_SIZE	0x800000
-#define MSM_PMEM_GPU1_BASE	MSM_RAM_CONSOLE_BASE - MSM_PMEM_GPU1_SIZE
-
-#define MSM_RAM_CONSOLE_BASE	MSM_EBI_BASE + 0x6d00000
-#define MSM_RAM_CONSOLE_SIZE	128 * SZ_1K
-
-#if (MSM_FB_BASE + MSM_FB_SIZE) >= (MSM_PMEM_GPU1_BASE)
-#error invalid memory map
-#endif
-
-*/
 #define DECLARE_MSM_IOMAP
 #include <mach/msm_iomap.h>
 
@@ -319,5 +222,7 @@
 	(bank ? TROUT_GPIO_INT_MASK1_REG : TROUT_GPIO_INT_MASK0_REG)
 #define TROUT_BANK_TO_STAT_REG(bank) \
 	(bank ? TROUT_GPIO_INT_STAT1_REG : TROUT_GPIO_INT_STAT0_REG)
+
+int trout_get_smi_size(void);
 
 #endif /* GUARD */

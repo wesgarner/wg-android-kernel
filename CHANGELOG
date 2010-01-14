@@ -1,3 +1,13 @@
+WG-Kernel 2
+CFS/BFS Options & RHack/NoRhack Options
+   * SLOB Memory Allocator http://en.wikipedia.org/wiki/SLOB
+   * Preemptible RCU
+   * Group CPU Scheduling for FIFO Deadline (CFS-Only)
+   * Deadline I/O Scheduler (FIFO=1 in init.d)
+   * Longer Default Panic Timeout in case of major temporary slowdown (helps prevent random reboot)
+   * 5 Ticks per CPU Check for CPU Speed versus other dev's default 1
+   * Latest SD Drivers from Cyanogen
+
 Kernel Updates in Build Y:
 CFS/BFS Options & RHack/NoRhack Options
    * Swap-enabled (plus working CC)
@@ -13,6 +23,3 @@ CFS/BFS Options & RHack/NoRhack Options
    * IPV6 is included in kernel
    * EXT3 runs on EXT4 Drivers, EXT2 runs on old drivers
    * Disabled Kernel Debugging (for faster usage)
-
-Kernel Updates Post Y Release:
-   * QoS Data Scheduling

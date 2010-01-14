@@ -2,5 +2,6 @@ if [ ! -d out ]; then
 	mkdir out;
 fi;
 mkbootfs ./ramdisk | gzip > out/ramdisk.gz
-cp -a arch/arm/boot/zImage out/zImage
+cp -a arch/arm/boot/zImage out/
 mkbootimg --kernel out/zImage --ramdisk out/ramdisk.gz -o out/boot.img
+cp -a drivers/net/wireless/tiwlan1251/wlan.ko out/

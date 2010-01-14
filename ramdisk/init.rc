@@ -162,14 +162,14 @@ on boot
 
 # Define the memory thresholds at which the above process classes will
 # be killed.  These numbers are in pages (4k).
-    setprop ro.FOREGROUND_APP_MEM 768
-    setprop ro.VISIBLE_APP_MEM 1024
+    setprop ro.FOREGROUND_APP_MEM 1024
+    setprop ro.VISIBLE_APP_MEM 1536
     setprop ro.SECONDARY_SERVER_MEM 2048
     setprop ro.BACKUP_APP_MEM 2048
-    setprop ro.HOME_APP_MEM 768
-    setprop ro.HIDDEN_APP_MEM 2048
-    setprop ro.CONTENT_PROVIDER_MEM 2716
-    setprop ro.EMPTY_APP_MEM 3122
+    setprop ro.HOME_APP_MEM 2048
+    setprop ro.HIDDEN_APP_MEM 4192
+    setprop ro.CONTENT_PROVIDER_MEM 4192
+    setprop ro.EMPTY_APP_MEM 6144
 
 #Power Management Settings
     write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold 40
@@ -183,7 +183,7 @@ on boot
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
     write /proc/sys/vm/page-cluster 0
-    write /sys/module/lowmemorykiller/parameters/minfree 768,1024,1536,2048,2716,3122
+    write /sys/module/lowmemorykiller/parameters/minfree 1024,1536,2048,2716,4192,6144
 
     # Set init its forked children's oom_adj.
     write /proc/1/oom_adj -16

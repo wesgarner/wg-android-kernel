@@ -4,4 +4,7 @@ fi;
 mkbootfs ./ramdisk | gzip > out/ramdisk.gz
 cp -a arch/arm/boot/zImage out/
 mkbootimg --kernel out/zImage --ramdisk out/ramdisk.gz -o out/boot.img
-cp -a drivers/net/wireless/tiwlan1251/wlan.ko out/
+mkdir out/modules
+cp -a drivers/net/wireless/tiwlan1251/wlan.ko out/modules/
+cp -L compcache/xvmalloc.ko out/modules/
+cp -a compcache/ramzswap.ko out/modules/

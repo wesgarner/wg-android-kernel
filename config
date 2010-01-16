@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.29.6
-# Thu Jan 14 13:42:06 2010
+# Sat Jan 16 11:40:49 2010
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -45,10 +45,9 @@ CONFIG_SWAP=y
 #
 # RCU Subsystem
 #
-# CONFIG_CLASSIC_RCU is not set
+CONFIG_CLASSIC_RCU=y
 # CONFIG_TREE_RCU is not set
-CONFIG_PREEMPT_RCU=y
-# CONFIG_RCU_TRACE is not set
+# CONFIG_PREEMPT_RCU is not set
 # CONFIG_TREE_RCU_TRACE is not set
 # CONFIG_PREEMPT_RCU_TRACE is not set
 CONFIG_IKCONFIG=y
@@ -539,50 +538,7 @@ CONFIG_NF_NAT_SIP=y
 # CONFIG_LAPB is not set
 # CONFIG_ECONET is not set
 # CONFIG_WAN_ROUTER is not set
-CONFIG_NET_SCHED=y
-
-#
-# Queueing/Scheduling
-#
-CONFIG_NET_SCH_CBQ=y
-# CONFIG_NET_SCH_HTB is not set
-# CONFIG_NET_SCH_HFSC is not set
-# CONFIG_NET_SCH_PRIO is not set
-# CONFIG_NET_SCH_MULTIQ is not set
-# CONFIG_NET_SCH_RED is not set
-# CONFIG_NET_SCH_SFQ is not set
-# CONFIG_NET_SCH_TEQL is not set
-# CONFIG_NET_SCH_TBF is not set
-# CONFIG_NET_SCH_GRED is not set
-# CONFIG_NET_SCH_DSMARK is not set
-# CONFIG_NET_SCH_NETEM is not set
-# CONFIG_NET_SCH_DRR is not set
-# CONFIG_NET_SCH_INGRESS is not set
-
-#
-# Classification
-#
-CONFIG_NET_CLS=y
-CONFIG_NET_CLS_BASIC=y
-# CONFIG_NET_CLS_TCINDEX is not set
-# CONFIG_NET_CLS_ROUTE4 is not set
-# CONFIG_NET_CLS_FW is not set
-# CONFIG_NET_CLS_U32 is not set
-# CONFIG_NET_CLS_RSVP is not set
-# CONFIG_NET_CLS_RSVP6 is not set
-# CONFIG_NET_CLS_FLOW is not set
-# CONFIG_NET_CLS_CGROUP is not set
-# CONFIG_NET_EMATCH is not set
-CONFIG_NET_CLS_ACT=y
-CONFIG_NET_ACT_POLICE=y
-# CONFIG_NET_ACT_GACT is not set
-# CONFIG_NET_ACT_MIRRED is not set
-# CONFIG_NET_ACT_IPT is not set
-# CONFIG_NET_ACT_NAT is not set
-# CONFIG_NET_ACT_PEDIT is not set
-# CONFIG_NET_ACT_SIMP is not set
-# CONFIG_NET_ACT_SKBEDIT is not set
-CONFIG_NET_SCH_FIFO=y
+# CONFIG_NET_SCHED is not set
 # CONFIG_DCB is not set
 
 #
@@ -763,7 +719,6 @@ CONFIG_DM_CRYPT=y
 # CONFIG_DM_DELAY is not set
 CONFIG_DM_UEVENT=y
 CONFIG_NETDEVICES=y
-# CONFIG_IFB is not set
 # CONFIG_DUMMY is not set
 # CONFIG_BONDING is not set
 # CONFIG_MACVLAN is not set
@@ -1276,7 +1231,7 @@ CONFIG_EXT4_USE_FOR_EXT23=y
 # CONFIG_EXT4DEV_COMPAT is not set
 # CONFIG_EXT4_FS_XATTR is not set
 CONFIG_JBD2=y
-CONFIG_JBD2_DEBUG=y
+# CONFIG_JBD2_DEBUG is not set
 # CONFIG_REISERFS_FS is not set
 # CONFIG_JFS_FS is not set
 # CONFIG_FS_POSIX_ACL is not set
@@ -1415,6 +1370,7 @@ CONFIG_DEBUG_FS=y
 # CONFIG_DEBUG_BUGVERBOSE is not set
 # CONFIG_DEBUG_MEMORY_INIT is not set
 CONFIG_FRAME_POINTER=y
+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
 # CONFIG_LATENCYTOP is not set
 CONFIG_HAVE_FUNCTION_TRACER=y
 

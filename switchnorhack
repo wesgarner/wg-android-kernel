@@ -1,0 +1,2 @@
+cp -a /home/wesgarner/src/wg-android-kernel/arch/arm/mach-msm/board-sapphire.h.orig /home/wesgarner/src/wg-android-kernel/arch/arm/mach-msm/board-sapphire.h
+cp -a /home/wesgarner/src/wg-android-kernel/arch/arm/mach-msm/board-trout.h.orig /home/wesgarner/src/wg-android-kernel/arch/arm/mach-msm/board-trout.h

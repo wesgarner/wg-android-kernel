@@ -1,0 +1,2 @@
+#!/bin/bash
+KERNEL_DIR=$PWD make -j4 CROSS_COMPILE=/home/wesgarner/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm $1

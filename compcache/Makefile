@@ -1,23 +1,20 @@
-EXTRA_CFLAGS	:=	-DCONFIG_BLK_DEV_RAMZSWAP_STATS \
-			-g -Wall
+KERNEL_BUILD_PATH ?= "/lib/modules/$(shell uname -r)/build"
 
-KERNEL_BUILD_PATH ?= "../"
+XVM = sub-projects/allocators/xvmalloc-kmod
+EXTRA_CFLAGS	:=	-DCONFIG_RAMZSWAP_STATS		\
+			-Wall
 
-obj-m	+=	sub-projects/allocators/xvmalloc-kmod/xvmalloc.o \
-		ramzswap.o
+obj-m		+=	ramzswap.o
+ramzswap-objs	:=	ramzswap_drv.o $(XVM)/xvmalloc.o
 
 all:
-	make -C $(KERNEL_BUILD_PATH) \
-		M=$(PWD)/sub-projects/allocators/xvmalloc-kmod modules
 	make -C $(KERNEL_BUILD_PATH) M=$(PWD) modules
 	make -C sub-projects/rzscontrol
-	@ln -sf sub-projects/allocators/xvmalloc-kmod/xvmalloc.ko
 
 doc:
 	make -C sub-projects/rzscontrol doc
 
 clean:
 	make -C $(KERNEL_BUILD_PATH) M=$(PWD) clean
-	make -C $(KERNEL_BUILD_PATH) M=$(PWD)/sub-projects/allocators/xvmalloc-kmod clean
 	make -C sub-projects/rzscontrol clean
 	@rm -rf *.ko

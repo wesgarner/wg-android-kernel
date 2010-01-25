@@ -10,7 +10,3 @@ clean:
 	make -C $(KERNEL_BUILD_PATH) M=$(PWD) clean
 	@$(RM) -rf *.o *~ *.c.gcov *.gcda *.gcno cscope.* tags
 
-xref:
-	@cscope -bkqRv
-	@ctags -R
-

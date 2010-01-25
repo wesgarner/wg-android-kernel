@@ -1,7 +1,7 @@
 /*
  * xvmalloc memory allocator
  *
- * Copyright (C) 2008, 2009  Nitin Gupta
+ * Copyright (C) 2008, 2009, 2010  Nitin Gupta
  *
  * This code is released using a dual license strategy: BSD/GPL
  * You can choose the licence that better fits your requirements.
@@ -10,22 +10,22 @@
  * Released under the terms of GNU General Public License Version 2.0
  */
 
-#ifndef _XVMALLOC_INT_H_
-#define _XVMALLOC_INT_H_
+#ifndef _XV_MALLOC_INT_H_
+#define _XV_MALLOC_INT_H_
 
 #include <linux/kernel.h>
 #include <linux/types.h>
 
 /* User configurable params */
 
-/* This must be greater than sizeof(LinkFree) */
-#define XV_MIN_ALLOC_SIZE       32
-#define XV_MAX_ALLOC_SIZE       (PAGE_SIZE - XV_ALIGN)
-
 /* Must be power of two */
 #define XV_ALIGN_SHIFT	2
 #define XV_ALIGN	(1 << XV_ALIGN_SHIFT)
 #define XV_ALIGN_MASK	(XV_ALIGN - 1)
+
+/* This must be greater than sizeof(link_free) */
+#define XV_MIN_ALLOC_SIZE	32
+#define XV_MAX_ALLOC_SIZE	(PAGE_SIZE - XV_ALIGN)
 
 /* Free lists are separated by FL_DELTA bytes */
 #define FL_DELTA_SHIFT	3
@@ -48,21 +48,21 @@ enum blockflags {
 #define PREV_MASK	(~FLAGS_MASK)
 
 struct freelist_entry {
-	u32 pagenum;
+	struct page *page;
 	u16 offset;
 	u16 pad;
 };
 
 struct link_free {
-	u32 prev_pagenum;
-	u32 next_pagenum;
+	struct page *prev_page;
+	struct page *next_page;
 	u16 prev_offset;
 	u16 next_offset;
 };
 
 struct block_header {
 	union {
-		/* This common header must be ALIGN bytes */
+		/* This common header must be XV_ALIGN bytes */
 		u8 common[XV_ALIGN];
 		struct {
 			u16 size;

@@ -86,7 +86,6 @@ void show_stats(struct ramzswap_ioctl_stats *s)
 		"FailedWrites:	%8" PRIu64 "\n"
 		"InvalidIO:	%8" PRIu64 "\n"
 		"NotifyFree:	%8" PRIu64 "\n"
-		"PagesDiscard:	%8" PRIu64 "\n"
 		"ZeroPages:	%8u\n"
 		"GoodCompress:	%8u %%\n"
 		"NoCompress:	%8u %%\n"
@@ -101,7 +100,6 @@ void show_stats(struct ramzswap_ioctl_stats *s)
 		s->failed_writes,
 		s->invalid_io,
 		s->notify_free,
-		s->pages_discard,
 		s->pages_zero,
 		s->good_compress_pct,
 		s->pages_expand_pct,

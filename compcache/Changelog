@@ -1,3 +1,26 @@
+version 0.6.2	(25/1/2010)
+ - Sync-up with mainline version which includes changes below.
+ - Lots and lots of cleanups.
+ - Use small case for ramzswap module parameter: NUM_DEVICES -> num_devices.
+ - Add three module parameters: backing_swap, memlimit_kb and disksize_kb to
+   allow initializing the first device (/dev/ramzswap0) without using
+   rzscontrol utility (see Issue #50).
+ - Use 'struct page' instead of 32-bit PFNs in ramzswap driver and xvmalloc.
+   This is to make these 64-bit safe.
+ - xvmalloc is no longer a separate module and does not export any symbols.
+   Its compiled directly with ramzswap block driver.
+ - Removed useless {load,unload}_modules.sh scripts.
+ - Fix to make sure disksize matches usable pages in backing swap file.
+ - Fix memory leak in (rare) error condition in init_device().
+ - Fix memory leak in (rare) failure in create_device().
+ - Remove swap discard hooks. Swap notifiers makes these redundant.
+ - Unify init_device() fail path and reset_device().
+ - Do not accept backing swap with bad pages.
+ - Fix zero-page accounting.
+ - Use lock for 64-bit stats to prevent value corruption.
+ - Rewrite swap notify patch.
+ - Fix crash when reset is called when there are pending I/Os.
+
 version 0.6	(20/8/2009)
  - Re-init notify callback to NULL on device reset.
  - Use block_device to set notify callback.
@@ -82,7 +105,7 @@ version 0.4	(13/8/2008)
    proc nodes: /proc/{tlsfinfo,compcache}
  - Fix crash when reading /proc/tlsfinfo
  - Lots of cleanups: clean compile on x64
- 
+
 version 0.3	(17/3/2008)
  - Fix spurious swap read failures
  - Better swap request filtering

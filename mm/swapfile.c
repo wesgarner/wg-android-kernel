@@ -480,6 +480,7 @@ static int swap_entry_free(struct swap_info_struct *p, swp_entry_t ent)
 		count--;
 		p->swap_map[offset] = count;
 		if (!count) {
+		struct gendisk *disk = p->bdev->bd_disk;
 			if (offset < p->lowest_bit)
 				p->lowest_bit = offset;
 			if (offset > p->highest_bit)
@@ -488,6 +489,8 @@ static int swap_entry_free(struct swap_info_struct *p, swp_entry_t ent)
 				swap_list.next = p - swap_info;
 			nr_swap_pages++;
 			p->inuse_pages--;
+			if (disk->fops->swap_slot_free_notify)
+				disk->fops->swap_slot_free_notify(p->bdev, offset);
 			mem_cgroup_uncharge_swap(ent);
 		}
 	}

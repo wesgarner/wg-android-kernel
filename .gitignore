@@ -25,6 +25,10 @@
 *.elf
 *.bin
 *.gz
+out/*
+arch/arm/mach-msm/board-sapphire.h
+arch/arm/mach-msm/board-trout.h
+
 
 #
 # Top-level generic files

@@ -27,7 +27,7 @@ ifneq ($(KERNELRELEASE),)
     include $(M)/os_sources.inc
 else
 ifeq ($(KERNEL_DIR),)
-    KERNEL_DIR = .
+    KERNEL_DIR = ../../../../
 endif
     include common.inc
     include drv_sources.inc

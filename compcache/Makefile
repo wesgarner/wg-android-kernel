@@ -1,4 +1,4 @@
-KERNEL_BUILD_PATH ?= "/lib/modules/$(shell uname -r)/build"
+KERNEL_BUILD_PATH ?= "../"
 
 XVM = sub-projects/allocators/xvmalloc-kmod
 EXTRA_CFLAGS	:=	-DCONFIG_RAMZSWAP_STATS		\

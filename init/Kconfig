@@ -1,3 +1,7 @@
+config WGKERNEL
+	bool "Welcome to WG-Kernel v3-BETA"
+	default y
+
 config ARCH
 	string
 	option env="ARCH"

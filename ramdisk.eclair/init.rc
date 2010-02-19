@@ -1,3 +1,4 @@
+
 on init
 
 sysclktz 0
@@ -17,7 +18,7 @@ loglevel 3
 
 # Backward compatibility
     symlink /system/etc /etc
-    symlink /system/lib /lib
+    symlink /system/etc /lib
     symlink /sys/kernel/debug /d
 
 # create mountpoints and mount tmpfs on sqlite_stmt_journals
@@ -68,6 +69,75 @@ loglevel 3
     chown system system /data
     chmod 0771 /data
 
+    # Create dump dir and collect dumps.
+    # Do this before we mount cache so eventually we can use cache for
+    # storing dumps on platforms which do not have a dedicated dump partition.
+   
+    mkdir /data/dontpanic
+    chown root log /data/dontpanic
+    chmod 0750 /data/dontpanic
+
+    # Collect apanic data, free resources and re-arm trigger
+    copy /proc/apanic_console /data/dontpanic/apanic_console
+    chown root log /data/dontpanic/apanic_console
+    chmod 0640 /data/dontpanic/apanic_console
+
+    copy /proc/apanic_threads /data/dontpanic/apanic_threads
+    chown root log /data/dontpanic/apanic_threads
+    chmod 0640 /data/dontpanic/apanic_threads
+
+    write /proc/apanic_console 1
+
+    # Same reason as /data above
+    mount yaffs2 mtd@cache /cache nosuid nodev
+    chown system cache /cache
+    chmod 0771 /cache
+
+    # This may have been created by the recovery system with odd permissions
+    chown system system /cache/recovery
+    chmod 0770 /cache/recovery
+
+    #change permissions on vmallocinfo so we can grab it from bugreports
+    chown root log /proc/vmallocinfo
+    chmod 0440 /proc/vmallocinfo
+
+# create basic filesystem structure
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vpn 0770 system system
+    mkdir /data/misc/vpn/profiles 0770 system system
+    # give system access to wpa_supplicant.conf for backup and restore
+    mkdir /data/misc/wifi 0770 wifi wifi
+    chmod 0770 /data/misc/wifi
+    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+    mkdir /data/local 0771 shell shell
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
+    mkdir /data/app-private 0771 system system
+    mkdir /data/app 0771 system system
+    mkdir /data/property 0700 root root
+
+
+    # create dalvik-cache and double-check the perms
+    mkdir /data/dalvik-cache 0771 system system
+    chown system system /data/dalvik-cache
+    chmod 0771 /data/dalvik-cache
+
+    mkdir /cache/dalvik-cache 0771 system system
+    chown system system /cache/dalvik-cache
+    chmod 0771 /cache/dalvik-cache
+
+    # create the lost+found directories, so as to enforce our permissions
+    mkdir /data/lost+found 0770
+    mkdir /cache/lost+found 0770
+
+    # double check the perms, in case lost+found already exists, and set owner
+    chown root root /data/lost+found
+    chmod 0770 /data/lost+found
+    chown root root /cache/lost+found
+    chmod 0770 /cache/lost+found
+
 on boot
 # basic network init
     ifup lo
@@ -96,7 +166,7 @@ on boot
     setprop ro.BACKUP_APP_MEM 4096
     setprop ro.HOME_APP_MEM 4096
     setprop ro.HIDDEN_APP_MEM 5120
-    setprop ro.CONTENT_PROVIDER_MEM 5632
+    setprop ro.CONTENT_PROVIDER_MEM 6144
     setprop ro.EMPTY_APP_MEM 6144
 
 # Write value must be consistent with the above properties.
@@ -345,7 +415,8 @@ on property:persist.service.memctl=2
 on property:persist.service.memctl=3
     start memctl_3
 
-# CompCache for other ROMs
+
+# CompCache for Other ROMs
 service compcache_on /system/bin/logwrapper /system/bin/sh /system/bin/compcache start
     disabled
     oneshot
@@ -359,3 +430,4 @@ on property:persist.service.compcache=1
 
 on property:persist.service.compcache=0
     start compcache_off
+

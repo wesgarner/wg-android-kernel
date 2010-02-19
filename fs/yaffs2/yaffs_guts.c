@@ -2515,9 +2515,6 @@ int yaffs_RenameObject(yaffs_Object *oldDir, const YCHAR *oldName,
 			yaffs_UnlinkObject(existingTarget);
 			dev->isDoingGC=0;
 		}
-		yaffs_UpdateParent(oldDir);
-		if(newDir != oldDir)
-			yaffs_UpdateParent(newDir);
 
 		result = yaffs_ChangeObjectName(obj, newDir, newName, 1, 0);
 

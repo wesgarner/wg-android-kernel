@@ -770,7 +770,6 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 		ctrl->vfeCamifEpoch1Local.enable = 0;
 	}
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x_proc.c
 	if (!vfe_funcs[id].fn) {
 		rp->evt_msg.len = 0;
 		rp->evt_msg.data = 0;
@@ -790,18 +789,6 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 			return;
 		}
 	}
-=======
-	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata);
-}
-
-static void vfe_send_msg_no_payload(enum VFE_MESSAGE_ID id)
-{
-	struct vfe_message *msg;
-
-	msg = kzalloc(sizeof(*msg), GFP_ATOMIC);
-	if (!msg)
-		return;
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x_proc.c
 
 	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata, GFP_ATOMIC);
 }

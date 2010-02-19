@@ -135,7 +135,6 @@ static void vfe_config_axi(int mode,
 	}
 }
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 #define ERR_COPY_FROM_USER() \
 	pr_err("%s(%d): copy from user\n", __func__, __LINE__)
 
@@ -145,22 +144,12 @@ static void vfe_config_axi(int mode,
 			"!= kernel data size %d\n",			\
 			__func__, __LINE__,				\
 			cmd->id, cmd->length, sizeof(*(in)));		\
-=======
-#define CHECKED_COPY_FROM_USER(in) {					\
-	if (cmd->length != sizeof(*(in))) {				\
-		pr_err("msm_camera: %s cmd %d: user data size %d "	\
-			"!= kernel data size %d\n",			\
-			__func__, cmd->id, cmd->length, sizeof(*(in)));	\
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 		rc = -EIO;						\
 		break;							\
 	}								\
 	if (copy_from_user((in), (void __user *)cmd->value,		\
 			sizeof(*(in)))) {				\
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 		ERR_COPY_FROM_USER();					\
-=======
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 		rc = -EFAULT;						\
 		break;							\
 	}								\
@@ -179,15 +168,9 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 		vfe_reset();
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_START:{
 			struct vfe_cmd_start start;
 			CHECKED_COPY_FROM_USER(&start);
-=======
-	case VFE_CMD_ID_START: {
-		struct vfe_cmd_start start;
-		CHECKED_COPY_FROM_USER(&start);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			/* msm_camio_camif_pad_reg_reset_2(); */
 			msm_camio_camif_pad_reg_reset();
@@ -195,35 +178,22 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_CAMIF_CONFIG:{
 			struct vfe_cmd_camif_config camif;
 			CHECKED_COPY_FROM_USER(&camif);
-=======
-	case VFE_CMD_ID_CAMIF_CONFIG: {
-		struct vfe_cmd_camif_config camif;
-		CHECKED_COPY_FROM_USER(&camif);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_camif_config(&camif);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_BLACK_LEVEL_CONFIG:{
 			struct vfe_cmd_black_level_config bl;
 			CHECKED_COPY_FROM_USER(&bl);
-=======
-	case VFE_CMD_ID_BLACK_LEVEL_CONFIG: {
-		struct vfe_cmd_black_level_config bl;
-		CHECKED_COPY_FROM_USER(&bl);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_black_level_config(&bl);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_ROLL_OFF_CONFIG:{
 			/* rolloff is too big to be on the stack */
 			struct vfe_cmd_roll_off_config *rolloff =
@@ -249,396 +219,225 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	case VFE_CMD_ID_DEMUX_CHANNEL_GAIN_CONFIG:{
 			struct vfe_cmd_demux_channel_gain_config demuxc;
 			CHECKED_COPY_FROM_USER(&demuxc);
-=======
-	case VFE_CMD_ID_ROLL_OFF_CONFIG: {
-		struct vfe_cmd_roll_off_config rolloff;
-		CHECKED_COPY_FROM_USER(&rolloff);
-
-		vfe_roll_off_config(&rolloff);
-	}
-		break;
-
-	case VFE_CMD_ID_DEMUX_CHANNEL_GAIN_CONFIG: {
-		struct vfe_cmd_demux_channel_gain_config demuxc;
-		CHECKED_COPY_FROM_USER(&demuxc);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			/* demux is always enabled.  */
 			vfe_demux_channel_gain_config(&demuxc);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_DEMOSAIC_CONFIG:{
 			struct vfe_cmd_demosaic_config demosaic;
 			CHECKED_COPY_FROM_USER(&demosaic);
-=======
-	case VFE_CMD_ID_DEMOSAIC_CONFIG: {
-		struct vfe_cmd_demosaic_config demosaic;
-		CHECKED_COPY_FROM_USER(&demosaic);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_demosaic_config(&demosaic);
 		}
 		break;
 
 	case VFE_CMD_ID_FOV_CROP_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_FOV_CROP_UPDATE:{
 			struct vfe_cmd_fov_crop_config fov;
 			CHECKED_COPY_FROM_USER(&fov);
-=======
-	case VFE_CMD_ID_FOV_CROP_UPDATE: {
-		struct vfe_cmd_fov_crop_config fov;
-		CHECKED_COPY_FROM_USER(&fov);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_fov_crop_config(&fov);
 		}
 		break;
 
 	case VFE_CMD_ID_MAIN_SCALER_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_MAIN_SCALER_UPDATE:{
 			struct vfe_cmd_main_scaler_config mainds;
 			CHECKED_COPY_FROM_USER(&mainds);
-=======
-	case VFE_CMD_ID_MAIN_SCALER_UPDATE: {
-		struct vfe_cmd_main_scaler_config mainds;
-		CHECKED_COPY_FROM_USER(&mainds);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_main_scaler_config(&mainds);
 		}
 		break;
 
 	case VFE_CMD_ID_WHITE_BALANCE_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_WHITE_BALANCE_UPDATE:{
 			struct vfe_cmd_white_balance_config wb;
 			CHECKED_COPY_FROM_USER(&wb);
-=======
-	case VFE_CMD_ID_WHITE_BALANCE_UPDATE: {
-		struct vfe_cmd_white_balance_config wb;
-		CHECKED_COPY_FROM_USER(&wb);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_white_balance_config(&wb);
 		}
 		break;
 
 	case VFE_CMD_ID_COLOR_CORRECTION_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_COLOR_CORRECTION_UPDATE:{
 			struct vfe_cmd_color_correction_config cc;
 			CHECKED_COPY_FROM_USER(&cc);
-=======
-	case VFE_CMD_ID_COLOR_CORRECTION_UPDATE: {
-		struct vfe_cmd_color_correction_config cc;
-		CHECKED_COPY_FROM_USER(&cc);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_color_correction_config(&cc);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_LA_CONFIG:{
 			struct vfe_cmd_la_config la;
 			CHECKED_COPY_FROM_USER(&la);
-=======
-	case VFE_CMD_ID_LA_CONFIG: {
-		struct vfe_cmd_la_config la;
-		CHECKED_COPY_FROM_USER(&la);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_la_config(&la);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_RGB_GAMMA_CONFIG:{
 			struct vfe_cmd_rgb_gamma_config rgb;
 			CHECKED_COPY_FROM_USER(&rgb);
-=======
-	case VFE_CMD_ID_RGB_GAMMA_CONFIG: {
-		struct vfe_cmd_rgb_gamma_config rgb;
-		CHECKED_COPY_FROM_USER(&rgb);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			rc = vfe_rgb_gamma_config(&rgb);
 		}
 		break;
 
 	case VFE_CMD_ID_CHROMA_ENHAN_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_CHROMA_ENHAN_UPDATE:{
 			struct vfe_cmd_chroma_enhan_config chrom;
 			CHECKED_COPY_FROM_USER(&chrom);
-=======
-	case VFE_CMD_ID_CHROMA_ENHAN_UPDATE: {
-		struct vfe_cmd_chroma_enhan_config chrom;
-		CHECKED_COPY_FROM_USER(&chrom);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_chroma_enhan_config(&chrom);
 		}
 		break;
 
 	case VFE_CMD_ID_CHROMA_SUPPRESSION_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_CHROMA_SUPPRESSION_UPDATE:{
 			struct vfe_cmd_chroma_suppression_config chromsup;
 			CHECKED_COPY_FROM_USER(&chromsup);
-=======
-	case VFE_CMD_ID_CHROMA_SUPPRESSION_UPDATE: {
-		struct vfe_cmd_chroma_suppression_config chromsup;
-		CHECKED_COPY_FROM_USER(&chromsup);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_chroma_sup_config(&chromsup);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_ASF_CONFIG:{
 			struct vfe_cmd_asf_config asf;
 			CHECKED_COPY_FROM_USER(&asf);
-=======
-	case VFE_CMD_ID_ASF_CONFIG: {
-		struct vfe_cmd_asf_config asf;
-		CHECKED_COPY_FROM_USER(&asf);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_asf_config(&asf);
 		}
 		break;
 
 	case VFE_CMD_ID_SCALER2Y_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_SCALER2Y_UPDATE:{
 			struct vfe_cmd_scaler2_config ds2y;
 			CHECKED_COPY_FROM_USER(&ds2y);
-=======
-	case VFE_CMD_ID_SCALER2Y_UPDATE: {
-		struct vfe_cmd_scaler2_config ds2y;
-		CHECKED_COPY_FROM_USER(&ds2y);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_scaler2y_config(&ds2y);
 		}
 		break;
 
 	case VFE_CMD_ID_SCALER2CbCr_CONFIG:
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_SCALER2CbCr_UPDATE:{
 			struct vfe_cmd_scaler2_config ds2cbcr;
 			CHECKED_COPY_FROM_USER(&ds2cbcr);
-=======
-	case VFE_CMD_ID_SCALER2CbCr_UPDATE: {
-		struct vfe_cmd_scaler2_config ds2cbcr;
-		CHECKED_COPY_FROM_USER(&ds2cbcr);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_scaler2cbcr_config(&ds2cbcr);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_CHROMA_SUBSAMPLE_CONFIG:{
 			struct vfe_cmd_chroma_subsample_config sub;
 			CHECKED_COPY_FROM_USER(&sub);
-=======
-	case VFE_CMD_ID_CHROMA_SUBSAMPLE_CONFIG: {
-		struct vfe_cmd_chroma_subsample_config sub;
-		CHECKED_COPY_FROM_USER(&sub);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_chroma_subsample_config(&sub);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_FRAME_SKIP_CONFIG:{
 			struct vfe_cmd_frame_skip_config fskip;
 			CHECKED_COPY_FROM_USER(&fskip);
-=======
-	case VFE_CMD_ID_FRAME_SKIP_CONFIG: {
-		struct vfe_cmd_frame_skip_config fskip;
-		CHECKED_COPY_FROM_USER(&fskip);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_frame_skip_config(&fskip);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_OUTPUT_CLAMP_CONFIG:{
 			struct vfe_cmd_output_clamp_config clamp;
 			CHECKED_COPY_FROM_USER(&clamp);
-=======
-	case VFE_CMD_ID_OUTPUT_CLAMP_CONFIG: {
-		struct vfe_cmd_output_clamp_config clamp;
-		CHECKED_COPY_FROM_USER(&clamp);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_output_clamp_config(&clamp);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 		/* module update commands */
 	case VFE_CMD_ID_BLACK_LEVEL_UPDATE:{
 			struct vfe_cmd_black_level_config blk;
 			CHECKED_COPY_FROM_USER(&blk);
-=======
-	/* module update commands */
-	case VFE_CMD_ID_BLACK_LEVEL_UPDATE: {
-		struct vfe_cmd_black_level_config blk;
-		CHECKED_COPY_FROM_USER(&blk);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_black_level_update(&blk);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_DEMUX_CHANNEL_GAIN_UPDATE:{
 			struct vfe_cmd_demux_channel_gain_config dmu;
 			CHECKED_COPY_FROM_USER(&dmu);
-=======
-	case VFE_CMD_ID_DEMUX_CHANNEL_GAIN_UPDATE: {
-		struct vfe_cmd_demux_channel_gain_config dmu;
-		CHECKED_COPY_FROM_USER(&dmu);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_demux_channel_gain_update(&dmu);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_DEMOSAIC_BPC_UPDATE:{
 			struct vfe_cmd_demosaic_bpc_update demo_bpc;
 			CHECKED_COPY_FROM_USER(&demo_bpc);
-=======
-	case VFE_CMD_ID_DEMOSAIC_BPC_UPDATE: {
-		struct vfe_cmd_demosaic_bpc_update demo_bpc;
-		CHECKED_COPY_FROM_USER(&demo_bpc);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_demosaic_bpc_update(&demo_bpc);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_DEMOSAIC_ABF_UPDATE:{
 			struct vfe_cmd_demosaic_abf_update demo_abf;
 			CHECKED_COPY_FROM_USER(&demo_abf);
-=======
-	case VFE_CMD_ID_DEMOSAIC_ABF_UPDATE: {
-		struct vfe_cmd_demosaic_abf_update demo_abf;
-		CHECKED_COPY_FROM_USER(&demo_abf);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_demosaic_abf_update(&demo_abf);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_LA_UPDATE:{
 			struct vfe_cmd_la_config la;
 			CHECKED_COPY_FROM_USER(&la);
-=======
-	case VFE_CMD_ID_LA_UPDATE: {
-		struct vfe_cmd_la_config la;
-		CHECKED_COPY_FROM_USER(&la);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_la_update(&la);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_RGB_GAMMA_UPDATE:{
 			struct vfe_cmd_rgb_gamma_config rgb;
 			CHECKED_COPY_FROM_USER(&rgb);
-=======
-	case VFE_CMD_ID_RGB_GAMMA_UPDATE: {
-		struct vfe_cmd_rgb_gamma_config rgb;
-		CHECKED_COPY_FROM_USER(&rgb);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			rc = vfe_rgb_gamma_update(&rgb);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_ASF_UPDATE:{
 			struct vfe_cmd_asf_update asf;
 			CHECKED_COPY_FROM_USER(&asf);
-=======
-	case VFE_CMD_ID_ASF_UPDATE: {
-		struct vfe_cmd_asf_update asf;
-		CHECKED_COPY_FROM_USER(&asf);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_asf_update(&asf);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_FRAME_SKIP_UPDATE:{
 			struct vfe_cmd_frame_skip_update fskip;
 			CHECKED_COPY_FROM_USER(&fskip);
-=======
-	case VFE_CMD_ID_FRAME_SKIP_UPDATE: {
-		struct vfe_cmd_frame_skip_update fskip;
-		CHECKED_COPY_FROM_USER(&fskip);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_frame_skip_update(&fskip);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_CAMIF_FRAME_UPDATE:{
 			struct vfe_cmds_camif_frame fup;
 			CHECKED_COPY_FROM_USER(&fup);
-=======
-	case VFE_CMD_ID_CAMIF_FRAME_UPDATE: {
-		struct vfe_cmds_camif_frame fup;
-		CHECKED_COPY_FROM_USER(&fup);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_camif_frame_update(&fup);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 		/* stats update commands */
 	case VFE_CMD_ID_STATS_AUTOFOCUS_UPDATE:{
 			struct vfe_cmd_stats_af_update afup;
 			CHECKED_COPY_FROM_USER(&afup);
-=======
-	/* stats update commands */
-	case VFE_CMD_ID_STATS_AUTOFOCUS_UPDATE: {
-		struct vfe_cmd_stats_af_update afup;
-		CHECKED_COPY_FROM_USER(&afup);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_stats_update_af(&afup);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_STATS_WB_EXP_UPDATE:{
 			struct vfe_cmd_stats_wb_exp_update wbexp;
 			CHECKED_COPY_FROM_USER(&wbexp);
-=======
-	case VFE_CMD_ID_STATS_WB_EXP_UPDATE: {
-		struct vfe_cmd_stats_wb_exp_update wbexp;
-		CHECKED_COPY_FROM_USER(&wbexp);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_stats_update_wb_exp(&wbexp);
 		}
@@ -652,31 +451,18 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	case VFE_CMD_ID_GET_HW_VERSION:
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 		/* stats */
 	case VFE_CMD_ID_STATS_SETTING:{
 			struct vfe_cmd_stats_setting stats;
 			CHECKED_COPY_FROM_USER(&stats);
-=======
-	/* stats */
-	case VFE_CMD_ID_STATS_SETTING: {
-		struct vfe_cmd_stats_setting stats;
-		CHECKED_COPY_FROM_USER(&stats);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_stats_setting(&stats);
 		}
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_STATS_AUTOFOCUS_START:{
 			struct vfe_cmd_stats_af_start af;
 			CHECKED_COPY_FROM_USER(&af);
-=======
-	case VFE_CMD_ID_STATS_AUTOFOCUS_START: {
-		struct vfe_cmd_stats_af_start af;
-		CHECKED_COPY_FROM_USER(&af);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_stats_start_af(&af);
 		}
@@ -686,15 +472,9 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 		vfe_stats_af_stop();
 		break;
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 	case VFE_CMD_ID_STATS_WB_EXP_START:{
 			struct vfe_cmd_stats_wb_exp_start awexp;
 			CHECKED_COPY_FROM_USER(&awexp);
-=======
-	case VFE_CMD_ID_STATS_WB_EXP_START: {
-		struct vfe_cmd_stats_wb_exp_start awexp;
-		CHECKED_COPY_FROM_USER(&awexp);
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			vfe_stats_start_wb_exp(&awexp);
 		}
@@ -762,13 +542,8 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 	    cmd->cmd_type != CMD_STATS_BUF_RELEASE &&
 	    cmd->cmd_type != CMD_STATS_AF_BUF_RELEASE) {
 		if (copy_from_user(&vfecmd,
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 				   (void __user *)(cmd->value), sizeof(vfecmd))) {
 			ERR_COPY_FROM_USER();
-=======
-				(void __user *)(cmd->value),
-				sizeof(vfecmd)))
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 			return -EFAULT;
 		}
 	}
@@ -782,7 +557,6 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 	case CMD_STATS_ENABLE:
 	case CMD_STATS_AXI_CFG: {
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x.c
 			int i;
 			struct vfe_cmd_stats_setting scfg;
 
@@ -797,32 +571,6 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 				     sizeof(scfg));
 				return -EIO;
 			}
-=======
-		struct axidata *axid;
-
-		axid = data;
-		if (!axid)
-			return -EFAULT;
-
-		scfg =
-			kmalloc(sizeof(struct vfe_cmd_stats_setting),
-				GFP_ATOMIC);
-		if (!scfg)
-			return -ENOMEM;
-
-		if (vfecmd.length != sizeof(scfg)) {
-			pr_err("msm_camera: %s: cmd %d: user-space data size %d"
-					" != kernel data size %d\n",
-					__func__, cmd->cmd_type,
-					vfecmd.length,
-					sizeof(typeof(*scfg)));
-			return -EIO;
-		}
-
-		if (copy_from_user(scfg,
-					(void __user *)(vfecmd.value),
-					vfecmd.length)) {
->>>>>>> a8089eb4931cbf63877963ecb09e6330c5888cdb:drivers/media/video/msm/msm_vfe8x.c
 
 			if (copy_from_user(&scfg,
 					   (void __user *)(vfecmd.value),

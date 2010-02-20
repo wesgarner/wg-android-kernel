@@ -403,16 +403,16 @@ service memctl_3 /system/bin/logwrapper /system/bin/sh /system/bin/memctl both
     disabled
     oneshot
 
-on property:persist.service.memctl=0
+on property:persist.service.memctl_state=0
     start memctl_0
 
-on property:persist.service.memctl=1
+on property:persist.service.memctl_state=1
     start memctl_1
 
-on property:persist.service.memctl=2
+on property:persist.service.memctl_state=2
     start memctl_2
 
-on property:persist.service.memctl=3
+on property:persist.service.memctl_state=3
     start memctl_3
 
 

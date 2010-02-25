@@ -128,3 +128,4 @@ obj-$(CONFIG_AUFS_FS)           += aufs/
 
 # Patched by YAFFS
 obj-$(CONFIG_YAFFS_FS)		+= yaffs2/
+obj-$(CONFIG_COMPCACHE)		+= compcache/

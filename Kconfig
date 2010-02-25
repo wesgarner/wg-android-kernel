@@ -1,0 +1,28 @@
+#
+# WG-Kernel Extras
+#
+
+config WGKERNEL
+	bool "Welcome to WG-Kernel v3-BETA"
+	default y
+
+if WGKERNEL
+menu "WG-Kernel Extras"
+
+config COMPCACHE
+	bool "CompCache 0.6.2 Module"
+	default y
+	depends on m
+
+config WLAN_TIDRV
+	bool "TIWLAN1251 WiFi Module for HTC Devices"
+	default y
+	depends on m
+
+#config MSM_RHACK
+#	bool "10mb RAM Hack for Trout/Sapphire 32B Devices"
+#	default y
+#	depends on MACH_TROUT && MACH_SAPPHIRE
+
+endmenu
+endif # if WGKERNEL

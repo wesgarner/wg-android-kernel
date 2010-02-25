@@ -1,6 +1,4 @@
-config WGKERNEL
-	bool "Welcome to WG-Kernel v3-BETA"
-	default y
+source "Kconfig"
 
 config ARCH
 	string

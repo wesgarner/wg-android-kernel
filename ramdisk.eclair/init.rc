@@ -37,7 +37,6 @@ loglevel 3
     write /proc/cpu/alignment 4
     write /proc/sys/kernel/sched_latency_ns 10000000
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
-    write /proc/sys/kernel/sched_compat_yield 1
     write /proc/sys/kernel/sched_child_runs_first 0
 
 # Create cgroup mount points for process groups
@@ -58,6 +57,7 @@ loglevel 3
     chmod 0777 /dev/cpuctl/bg_non_interactive/tasks
     # 5.0 %
     write /dev/cpuctl/bg_non_interactive/cpu.shares 52
+
 
 # mount mtd partitions
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
@@ -138,6 +138,10 @@ loglevel 3
     chown root root /cache/lost+found
     chmod 0770 /cache/lost+found
 
+    # allow net_raw to have access to /dev/socket directory
+    chown root net_raw /dev/socket
+    chmod 0775 /dev/socket
+
 on boot
 # basic network init
     ifup lo
@@ -164,7 +168,7 @@ on boot
     setprop ro.VISIBLE_APP_MEM 2048
     setprop ro.SECONDARY_SERVER_MEM 4096
     setprop ro.BACKUP_APP_MEM 4096
-    setprop ro.HOME_APP_MEM 4096
+    setprop ro.HOME_APP_MEM 2048
     setprop ro.HIDDEN_APP_MEM 5120
     setprop ro.CONTENT_PROVIDER_MEM 6144
     setprop ro.EMPTY_APP_MEM 6144
@@ -334,8 +338,9 @@ service pbap /system/bin/sdptool add --channel=19 PBAP
 service installd /system/bin/installd
     socket installd stream 600 system system
 
-service flash_recovery /system/etc/install-recovery.sh
-    oneshot
+# Never flash the recovery!
+#service flash_recovery /system/etc/install-recovery.sh
+#    oneshot
 
 service racoon /system/bin/racoon
     socket racoon stream 600 system system

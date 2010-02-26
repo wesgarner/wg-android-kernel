@@ -2,8 +2,8 @@ on early-init
     device mtd@misc 0460 radio diag
 
 # Set timeout value for rmnet stats.
-    write /sys/devices/virtual/net/rmnet0/timeout_suspend 5000000
-    write /sys/devices/virtual/net/rmnet0/timeout 18000000
+  write /sys/devices/virtual/net/rmnet0/timeout_suspend 5000000
+  write /sys/devices/virtual/net/rmnet0/timeout 18000000
 
 on boot
 # unmap left alt to avoid console switch
@@ -31,9 +31,6 @@ on boot
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660                /sys/class/rfkill/rfkill0/state
-
-on property:init.svc.wpa_supplicant=stopped
-    stop dhcpcd
 
 # compass/accelerometer daemon
 service akmd /system/bin/akmd

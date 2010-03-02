@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.29.6
-# Wed Feb 24 22:51:05 2010
+# Mon Mar  1 18:03:28 2010
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -240,6 +240,7 @@ CONFIG_MSM_ADSP=y
 CONFIG_MSM_ADSP_REPORT_EVENTS=y
 CONFIG_WIFI_CONTROL_FUNC=y
 CONFIG_WIFI_MEM_PREALLOC=y
+# CONFIG_VIRTUAL_KPANIC_PARTITION is not set
 
 #
 # Processor Type

@@ -32,9 +32,6 @@ on boot
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660                /sys/class/rfkill/rfkill0/state
 
-on property:init.svc.wpa_supplicant=stopped
-    stop dhcpcd
-
 # compass/accelerometer daemon
 service akmd /system/bin/akmd
     user compass
@@ -59,7 +56,7 @@ service dhcpcd /system/bin/dhcpcd -BKL tiwlan0
     oneshot
 
 service hciattach /system/bin/hciattach \
-    -n -s 115200 /dev/ttyHS0 texas 4000000 flow
+    -n -s 115200 /dev/ttyHS0 texasalt 4000000 flow
     user bluetooth
     group bluetooth net_bt_admin
     disabled

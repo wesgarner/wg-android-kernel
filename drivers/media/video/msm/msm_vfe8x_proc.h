@@ -677,16 +677,6 @@ struct vfe_camifcfg {
 	uint32_t epoch2Line:14;
 	 uint32_t /* reserved */ : 2;
 } __attribute__ ((packed, aligned(4)));
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe8x_proc.h
-=======
-
-struct vfe_epoch1cfg {
-	/* Epoch Interrupt */
-	uint32_t epoch1Line:14;
-	uint32_t /* reserved */ : 2;
-} __attribute__ ((packed, aligned(4)));
-
->>>>>>> 12e38d1af20aa88b7e5229ce95812edc950ba9ce:drivers/media/video/msm/msm_vfe8x_proc.h
 
 struct vfe_camifframe_update {
 	uint32_t pixelsPerLine:14;
@@ -1569,5 +1559,4 @@ void vfe_reset(void);
 void vfe_cmd_release(struct platform_device *);
 void vfe_output1_ack(struct vfe_cmd_output_ack *);
 void vfe_output2_ack(struct vfe_cmd_output_ack *);
-void vfe_epoch1_config(struct vfe_cmds_camif_epoch *);
 #endif /* __MSM_VFE8X_REG_H__ */

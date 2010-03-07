@@ -1602,9 +1602,10 @@ static int check_command(struct fsg_dev *fsg, int cmnd_size,
 	/* Verify the length of the command itself */
 	if (cmnd_size != fsg->cmnd_size) {
 
-		/* Special case workaround: MS-Windows issues REQUEST SENSE
-		 * with cbw->Length == 12 (it should be 6). */
-		if (fsg->cmnd[0] == SC_REQUEST_SENSE && fsg->cmnd_size == 12)
+		/* According to USB Mass Storage specification for bootability,
+		 * the device should accept a cbw->Length of 12 bytes for all
+		 * commands. The remaining bytes are padded with 0 by the host. */
+		if (fsg->cmnd_size == 12)
 			cmnd_size = fsg->cmnd_size;
 		else {
 			fsg->phase_error = 1;
@@ -2449,8 +2450,38 @@ static ssize_t store_file(struct device *dev, struct device_attribute *attr,
 	return (rc < 0 ? rc : count);
 }
 
-
 static DEVICE_ATTR(file, 0444, show_file, store_file);
+
+static ssize_t store_enable(struct device *dev, struct device_attribute *attr,
+                const char *buf, size_t count)
+{
+        unsigned long ul;
+        if (count > 2 || (buf[0] != '0' && buf[0] != '1')) {
+                printk(KERN_ERR "Can't enable/disable %s %s\n", DRIVER_NAME, buf);
+                return -EINVAL;
+        }
+        ul = simple_strtoul(buf, NULL, 10);
+        usb_function_enable(DRIVER_NAME, ul);
+
+        return count;
+}
+
+static ssize_t show_enable(struct device *dev, struct device_attribute *attr,
+                char *buf)
+{
+        if (return_usb_function_enabled(DRIVER_NAME) > 0) {
+                buf[0] = '1';
+                buf[1] = '\n';
+        }
+        else {
+                buf[0] = '0';
+                buf[1] = '\n';
+        }
+
+        return 2;
+}
+
+static DEVICE_ATTR(enable, 0644, show_enable, store_enable);
 
 /*-------------------------------------------------------------------------*/
 
@@ -2483,6 +2514,7 @@ static void /* __init_or_exit */ fsg_unbind(void *_ctxt)
 		curlun = &fsg->luns[i];
 		if (curlun->registered) {
 			device_remove_file(&curlun->dev, &dev_attr_file);
+			device_remove_file(&curlun->dev, &dev_attr_enable);
 			device_unregister(&curlun->dev);
 			curlun->registered = 0;
 		}
@@ -2549,6 +2581,12 @@ static void fsg_bind(struct usb_endpoint **ept, void *_ctxt)
 			goto out;
 		}
 		rc = device_create_file(&curlun->dev, &dev_attr_file);
+		if (rc != 0) {
+			ERROR(fsg, "device_create_file failed: %d\n", rc);
+			device_unregister(&curlun->dev);
+			goto out;
+		}
+		rc = device_create_file(&curlun->dev, &dev_attr_enable);
 		if (rc != 0) {
 			ERROR(fsg, "device_create_file failed: %d\n", rc);
 			device_unregister(&curlun->dev);
@@ -2622,6 +2660,8 @@ static void fsg_configure(int configured, void *_ctxt)
 
 /*-------------------------------------------------------------------------*/
 
+/*-------------------------------------------------------------------------*/
+
 static struct usb_function		fsg_function = {
 	.bind		= fsg_bind,
 	.unbind		= fsg_unbind,
@@ -2638,6 +2678,8 @@ static struct usb_function		fsg_function = {
 
 	.ifc_ept_count = 2,
 	.ifc_ept_type = { EPT_BULK_OUT, EPT_BULK_IN },
+
+	.position_bit = USB_FUNCTION_MASS_STORAGE_NUM,
 };
 
 

@@ -24,6 +24,9 @@ choice
 	config MSM_AMSS_VERSION_6350
 		bool "6.3.50"
 endchoice
+config MSM_AMSS_SUPPORT_256MB_EBI1
+	default n
+	bool "AMSS that support unified 128MB and 256MB EBI1"
 
 config MSM_DEBUG_UART
 	int
@@ -78,6 +81,12 @@ config HTC_HEADSET
 	 Provides support for detecting HTC 2 wire devices, such as wired
 	 headset, on the trout platform. Can be used with the msm serial
 	 debugger, but not with serial console.
+
+config HTC_35MM_JACK
+	bool "HTC 3.5mm headset jack"
+	default n
+	help
+	 Provides support for 3.5mm headset jack devices, like wired headsets.
 
 config TROUT_BATTCHG
 	depends on MACH_TROUT && POWER_SUPPLY

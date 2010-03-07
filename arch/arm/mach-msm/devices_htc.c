@@ -27,6 +27,7 @@
 #include <mach/msm_hsusb.h>
 
 #ifdef CONFIG_USB_FUNCTION
+#include <../../../drivers/usb/function/usb_function.h>
 #include <linux/usb/mass_storage_function.h>
 #endif
 #ifdef CONFIG_USB_ANDROID
@@ -92,30 +93,121 @@ static int hsusb_phy_init_seq[] = { 0x40, 0x31, 0x1D, 0x0D, 0x1D, 0x10, -1 };
 
 #ifdef CONFIG_USB_FUNCTION
 static char *usb_functions[] = {
+#if defined(CONFIG_USB_FUNCTION_RNDIS_WCEIS)
+	/* ether *MUST* be first for Windows to detect it using Compatible IDs */
+	"ether",
+#endif
 #if defined(CONFIG_USB_FUNCTION_MASS_STORAGE) || defined(CONFIG_USB_FUNCTION_UMS)
 	"usb_mass_storage",
 #endif
 #ifdef CONFIG_USB_FUNCTION_ADB
 	"adb",
 #endif
+#if defined(CONFIG_USB_FUNCTION_FSYNC)
+	"fsync",
+#endif
+#if defined(CONFIG_USB_FUNCTION_DIAG)
+	"diag",
+#endif
+#if defined(CONFIG_USB_FUNCTION_SERIAL)
+	"fserial",
+#endif
+#if defined(CONFIG_USB_FUNCTION_PROJECTOR)
+	"projector",
+#endif
+#if defined(CONFIG_USB_FUNCTION_MTP_TUNNEL)
+	"mtp_tunnel",
+#endif
+#if defined(CONFIG_USB_FUNCTION_ETHER) && !defined(CONFIG_USB_FUNCTION_RNDIS_WCEIS)
+	"ether",
+#endif
 };
 
+/* The first product_id with all the functions required for the current setup
+ * will be used, so be careful about your ordering.
+ */
 static struct msm_hsusb_product usb_products[] = {
+#if defined(CONFIG_USB_FUNCTION_MASS_STORAGE) || defined(CONFIG_USB_FUNCTION_UMS)
 	{
 		.product_id	= 0x0c01,
-		.functions	= 0x00000001, /* usb_mass_storage */
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM),
 	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_ADB)
 	{
 		.product_id	= 0x0c02,
-		.functions	= 0x00000003, /* usb_mass_storage + adb */
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_ADB_NUM)
 	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_FSERIAL)
+	{
+		.product_id	= 0x0c03,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_FSERIAL_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_PROJECTOR)
+	{
+		.product_id = 0x0c05,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_PROJECTOR_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_DIAG)
+	{
+		.product_id = 0x0c08,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_DIAG_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_FSERIAL) && defined(CONFIG_USB_FUNCTION_ADB)
+	{
+		.product_id	= 0x0c04,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_ADB_NUM)
+				| BIT(USB_FUNCTION_FSERIAL_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_PROJECTOR) && defined(CONFIG_USB_FUNCTION_ADB)
+	{
+		.product_id = 0x0c06,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_ADB_NUM)
+				| BIT(USB_FUNCTION_PROJECTOR_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_DIAG) && defined(CONFIG_USB_FUNCTION_ADB)
+	{
+		.product_id	= 0x0c07,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_ADB_NUM)
+				| BIT(USB_FUNCTION_DIAG_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_ETHER)
+	{
+		.product_id = 0x0FFE,
+		.functions	= BIT(USB_FUNCTION_INTERNET_SHARING_NUM)
+	},
+#endif
+#if defined(CONFIG_USB_FUNCTION_ETHER) && defined(CONFIG_USB_FUNCTION_RNDIS_WCEIS)
+	{
+		.product_id = 0x0FFE,
+		.functions	= BIT(USB_FUNCTION_MASS_STORAGE_NUM)
+				| BIT(USB_FUNCTION_ADB_NUM)
+				| BIT(USB_FUNCTION_INTERNET_SHARING_NUM)
+	},
+#endif
 };
 #endif
 
 struct msm_hsusb_platform_data msm_hsusb_pdata = {
 	.phy_reset = internal_phy_reset,
 	.phy_init_seq = hsusb_phy_init_seq,
+#ifdef CONFIG_TROUT_BATTCHG
 	.usb_connected = notify_usb_connected,
+#endif
 #ifdef CONFIG_USB_FUNCTION
 	.vendor_id = 0x0bb4,
 	.product_id = 0x0c02,

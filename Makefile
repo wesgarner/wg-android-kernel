@@ -1,7 +1,7 @@
 VERSION = 2
 PATCHLEVEL = 6
 SUBLEVEL = 29
-EXTRAVERSION =
+EXTRAVERSION = .6
 NAME = Temporary Tasmanian Devil
 
 # *DOCUMENTATION*
@@ -473,6 +473,7 @@ drivers-y	:= drivers/ sound/ firmware/
 net-y		:= net/
 libs-y		:= lib/
 core-y		:= usr/
+
 endif # KBUILD_EXTMOD
 
 ifeq ($(dot-config),1)

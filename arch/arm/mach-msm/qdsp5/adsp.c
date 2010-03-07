@@ -553,7 +553,7 @@ static void *modem_event_addr;
 #if CONFIG_MSM_AMSS_VERSION >= 6350
 static void read_modem_event(void *buf, size_t len)
 {
-	uint32_t *dptr = buf;
+	uint32_t dptr[3];
 	struct rpc_adsp_rtos_modem_to_app_args_t *sptr;
 	struct adsp_rtos_mp_mtoa_type *pkt_ptr;
 
@@ -563,6 +563,11 @@ static void read_modem_event(void *buf, size_t len)
 	dptr[0] = be32_to_cpu(sptr->mtoa_pkt.mp_mtoa_header.event);
 	dptr[1] = be32_to_cpu(pkt_ptr->module);
 	dptr[2] = be32_to_cpu(pkt_ptr->image);
+
+	if (len > EVENT_LEN)
+		len = EVENT_LEN;
+
+	memcpy(buf, dptr, len);
 }
 #else
 static void read_modem_event(void *buf, size_t len)

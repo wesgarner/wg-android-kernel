@@ -86,7 +86,11 @@ struct sapphire_axis_info {
 };
 static bool nav_just_on;
 static int nav_on_jiffies;
+#if	defined(CONFIG_MSM_AMSS_SUPPORT_256MB_EBI1)
+static int smi_sz = 32;
+#else
 static int smi_sz = 64;
+#endif
 static unsigned int hwid = 0;
 static unsigned int skuid = 0;
 static unsigned engineerid = (0x01 << 1);	/* default is 3M sensor */
@@ -744,12 +748,12 @@ static struct msm_pmem_setting pmem_setting_32 = {
 	.pmem_adsp_size = SMI32_MSM_PMEM_ADSP_SIZE,
 	.pmem_gpu0_start = MSM_PMEM_GPU0_BASE,
 	.pmem_gpu0_size = MSM_PMEM_GPU0_SIZE,
-	.pmem_gpu1_start = MSM_PMEM_GPU1_BASE,
-	.pmem_gpu1_size = MSM_PMEM_GPU1_SIZE,
-	.pmem_camera_start = 0,
-	.pmem_camera_size = 0,
-	.ram_console_start = MSM_RAM_CONSOLE_BASE,
-	.ram_console_size = MSM_RAM_CONSOLE_SIZE,
+	.pmem_gpu1_start = SMI32_MSM_PMEM_GPU1_BASE,
+	.pmem_gpu1_size = SMI32_MSM_PMEM_GPU1_SIZE,
+	.pmem_camera_start = SMI32_MSM_PMEM_CAMERA_BASE,
+	.pmem_camera_size = SMI32_MSM_PMEM_CAMERA_SIZE,
+	.ram_console_start = SMI32_MSM_RAM_CONSOLE_BASE,
+	.ram_console_size = SMI32_MSM_RAM_CONSOLE_SIZE,
 };
 
 static struct msm_pmem_setting pmem_setting_64 = {
@@ -759,12 +763,12 @@ static struct msm_pmem_setting pmem_setting_64 = {
 	.pmem_adsp_size = SMI64_MSM_PMEM_ADSP_SIZE,
 	.pmem_gpu0_start = MSM_PMEM_GPU0_BASE,
 	.pmem_gpu0_size = MSM_PMEM_GPU0_SIZE,
-	.pmem_gpu1_start = MSM_PMEM_GPU1_BASE,
-	.pmem_gpu1_size = MSM_PMEM_GPU1_SIZE,
+	.pmem_gpu1_start = SMI64_MSM_PMEM_GPU1_BASE,
+	.pmem_gpu1_size = SMI64_MSM_PMEM_GPU1_SIZE,
 	.pmem_camera_start = SMI64_MSM_PMEM_CAMERA_BASE,
 	.pmem_camera_size = SMI64_MSM_PMEM_CAMERA_SIZE,
-	.ram_console_start = MSM_RAM_CONSOLE_BASE,
-	.ram_console_size = MSM_RAM_CONSOLE_SIZE,
+	.ram_console_start = SMI64_MSM_RAM_CONSOLE_BASE,
+	.ram_console_size = SMI64_MSM_RAM_CONSOLE_SIZE,
 };
 
 #ifdef CONFIG_WIFI_CONTROL_FUNC
@@ -905,6 +909,7 @@ static struct platform_device sapphire_camera = {
 
 static struct platform_device *devices[] __initdata = {
 	&msm_device_smd,
+	&msm_device_dmov,
 	&msm_device_nand,
 	&msm_device_i2c,
 	&msm_device_uart1,
@@ -1257,18 +1262,35 @@ static void __init sapphire_fixup(struct machine_desc *desc, struct tag *tags,
 	mi->nr_banks = 1;
 	mi->bank[0].start = PHYS_OFFSET;
 	mi->bank[0].node = PHYS_TO_NID(PHYS_OFFSET);
-	if (smi_sz == 32) {
-		mi->bank[0].size = (84*1024*1024);
-	} else if (smi_sz == 64) {
-		mi->bank[0].size = (101*1024*1024);
+
+#if	defined(CONFIG_MSM_AMSS_SUPPORT_256MB_EBI1)
+	if (32 == smi_sz) {
+		mi->bank[0].size = MSM_EBI_SMI32_256MB_SIZE;
+	} else if (64 == smi_sz){
+		mi->bank[0].size = MSM_EBI_SMI64_128MB_SIZE;
 	} else {
 		printk(KERN_ERR "can not get smi size\n");
 
 		/*Give a default value when not get smi size*/
 		smi_sz = 64;
-		mi->bank[0].size = (101*1024*1024);
+		mi->bank[0].size = MSM_EBI_SMI64_128MB_SIZE;
 		printk(KERN_ERR "use default  :  smisize=%d\n", smi_sz);
 	}
+#else
+	if (32 == smi_sz) {
+		mi->bank[0].size = (84*1024*1024);
+	} else if (64 == smi_sz) {
+		mi->bank[0].size = SMI64_MSM_LINUX_SIZE;	//(101*1024*1024);
+	} else {
+		printk(KERN_ERR "can not get smi size\n");
+
+		/*Give a default value when not get smi size*/
+		smi_sz = 64;
+		mi->bank[0].size = SMI64_MSM_LINUX_SIZE;	//(101*1024*1024);
+		printk(KERN_ERR "use default  :  smisize=%d\n", smi_sz);
+	}
+#endif
+	printk("sapphire_fixup:bank size=0x%x\n", mi->bank[0].size);
 }
 
 static void __init sapphire_map_io(void)
@@ -1284,7 +1306,11 @@ MACHINE_START(SAPPHIRE, "sapphire")
 	.phys_io        = MSM_DEBUG_UART_PHYS,
 	.io_pg_offst    = ((MSM_DEBUG_UART_BASE) >> 18) & 0xfffc,
 #endif
+#if defined(CONFIG_MSM_AMSS_SUPPORT_256MB_EBI1)
+	.boot_params    = 0x19200100,
+#else
 	.boot_params    = 0x10000100,
+#endif
 	.fixup          = sapphire_fixup,
 	.map_io         = sapphire_map_io,
 	.init_irq       = sapphire_init_irq,

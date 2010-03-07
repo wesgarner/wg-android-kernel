@@ -212,10 +212,10 @@ void msm_set_i2c_mux(bool gpio, int *gpio_clk, int *gpio_dat)
 		*gpio_dat = GPIO_I2C_DAT;
 	} else {
 		id = PCOM_GPIO_CFG(GPIO_I2C_CLK, 1, GPIO_INPUT,
-				   GPIO_NO_PULL, GPIO_2MA);
+				   GPIO_NO_PULL, GPIO_8MA);
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &id, 0);
 		id = PCOM_GPIO_CFG(GPIO_I2C_DAT , 1, GPIO_INPUT,
-				   GPIO_NO_PULL, GPIO_2MA);
+				   GPIO_NO_PULL, GPIO_8MA);
 		msm_proc_comm(PCOM_RPC_GPIO_TLMM_CONFIG_EX, &id, 0);
 	}
 }
@@ -268,6 +268,11 @@ struct platform_device msm_device_nand = {
 
 struct platform_device msm_device_smd = {
 	.name	= "msm_smd",
+	.id	= -1,
+};
+
+struct platform_device msm_device_dmov = {
+	.name	= "msm_dmov",
 	.id	= -1,
 };
 

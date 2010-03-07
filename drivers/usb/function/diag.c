@@ -231,6 +231,8 @@ static struct usb_function usb_func_diag = {
 
 	.ifc_ept_count = 2,
 	.ifc_ept_type = { EPT_BULK_OUT, EPT_BULK_IN },
+
+	.position_bit = USB_FUNCTION_DIAG_NUM,
 };
 
 static int msm_diag_probe(struct platform_device *pdev)

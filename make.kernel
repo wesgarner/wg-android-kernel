@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -e /usr/bin/ccache ]; then
+	ccache make -j4 KERNEL_DIR=$PWD CROSS_COMPILE=/home/wesgarner/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm $1
+else
+	make -j4 KERNEL_DIR=$PWD CROSS_COMPILE=/home/wesgarner/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm $1
+fi;

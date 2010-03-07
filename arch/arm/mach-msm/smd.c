@@ -77,11 +77,14 @@ static void smd_diag(void)
 	}
 }
 
+void msm_pm_flush_console(void);
+
 /* call when SMSM_RESET flag is set in the A9's smsm_state */
 static void handle_modem_crash(void)
 {
 	pr_err("ARM9 has CRASHED\n");
 	smd_diag();
+	msm_pm_flush_console();
 
 	/* hard reboot if possible */
 	if (msm_hw_reset_hook)
@@ -796,6 +799,16 @@ int smd_read(smd_channel_t *ch, void *data, int len)
 int smd_write(smd_channel_t *ch, const void *data, int len)
 {
 	return ch->write(ch, data, len);
+}
+
+int smd_write_atomic(smd_channel_t *ch, const void *data, int len)
+{
+	unsigned long flags;
+	int res;
+	spin_lock_irqsave(&smd_lock, flags);
+	res = ch->write(ch, data, len);
+	spin_unlock_irqrestore(&smd_lock, flags);
+	return res;
 }
 
 int smd_read_avail(smd_channel_t *ch)

@@ -19,3 +19,7 @@
 /* IO devices are mapped at 0xF8000000 and above */
 
 #define VMALLOC_END	  (PAGE_OFFSET + 0x20000000)
+
+#endif
+
+

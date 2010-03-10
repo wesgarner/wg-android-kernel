@@ -15,6 +15,8 @@ loglevel 3
     export EXTERNAL_STORAGE /sdcard
     export BOOTCLASSPATH /system/framework/core.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar
     export TERMINFO /system/etc/terminfo
+    export TERM linux
+
 
 # Backward compatibility
     symlink /system/etc /etc
@@ -58,6 +60,7 @@ loglevel 3
     chmod 0777 /dev/cpuctl/bg_non_interactive/tasks
     # 5.0 %
     write /dev/cpuctl/bg_non_interactive/cpu.shares 52
+
 
 # mount mtd partitions
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
@@ -168,7 +171,7 @@ on boot
     setprop ro.VISIBLE_APP_MEM 2048
     setprop ro.SECONDARY_SERVER_MEM 4096
     setprop ro.BACKUP_APP_MEM 4096
-    setprop ro.HOME_APP_MEM 4096
+    setprop ro.HOME_APP_MEM 2048
     setprop ro.HIDDEN_APP_MEM 5120
     setprop ro.CONTENT_PROVIDER_MEM 6144
     setprop ro.EMPTY_APP_MEM 6144

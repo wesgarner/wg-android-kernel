@@ -109,6 +109,9 @@ enum vfe_cmd_id {
 
 	VFE_CMD_ID_ASYNC_TIMER_SETTING,
 
+	/* epoch1 */
+	VFE_CMD_ID_EPOCH1_CONFIG,
+
 	/* max id  */
 	VFE_CMD_ID_MAX
 };

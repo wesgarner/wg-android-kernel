@@ -678,6 +678,13 @@ struct vfe_camifcfg {
 	 uint32_t /* reserved */ : 2;
 } __attribute__ ((packed, aligned(4)));
 
+struct vfe_epoch1cfg {
+	/* Epoch Interrupt */
+	uint32_t epoch1Line:14;
+	uint32_t /* reserved */ : 2;
+} __attribute__ ((packed, aligned(4)));
+
+
 struct vfe_camifframe_update {
 	uint32_t pixelsPerLine:14;
 	 uint32_t /* reserved */ : 2;
@@ -1559,4 +1566,5 @@ void vfe_reset(void);
 void vfe_cmd_release(struct platform_device *);
 void vfe_output1_ack(struct vfe_cmd_output_ack *);
 void vfe_output2_ack(struct vfe_cmd_output_ack *);
+void vfe_epoch1_config(struct vfe_cmds_camif_epoch *);
 #endif /* __MSM_VFE8X_REG_H__ */

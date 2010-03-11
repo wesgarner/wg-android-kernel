@@ -1,3 +1,22 @@
+	Welcome to WG-Kernel
+
+Information on how to compile:
+To compile an Android kernel, you must have CROSS_COMPILE and ARCH in your export
+Example:
+	make -j3 CROSS_COMPILE=~/mydroid/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm
+Then, to set up the final boot.img - you must have the SDK in your $PATH to run mkbootimg/mkbootfs. After you have done this, you can run some commands I have included to built the final image
+	./boot.eclair (builds for Eclair with 3D / MemCtl/CC setup)
+	./boot.donut (build for Donut)
+This will create a boot.img plus all modules creating in the out directory
+Note: The donut one may be a bit outdated, and this is only for sapphire/dream
+
+If you are using CM or OE, I suggest doing INSTALL_MOD_PATH=[The path to your system build directory]
+This will place all the modules and corresponding setup for busybox in your build directory for you
+
+
+
+
+
 	Linux kernel release 2.6.xx <http://kernel.org/>
 
 These are the release notes for Linux version 2.6.  Read them carefully,

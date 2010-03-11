@@ -24,6 +24,7 @@
 #define ON  1
 #define OFF 0
 
+struct mutex vfe_lock;
 static void *vfe_syncdata;
 
 static int vfe_enable(struct camera_enable_cmd *enable)
@@ -43,7 +44,10 @@ static void vfe_release(struct platform_device *dev)
 {
 	msm_camio_disable(dev);
 	vfe_cmd_release(dev);
+
+	mutex_lock(&vfe_lock);
 	vfe_syncdata = NULL;
+	mutex_unlock(&vfe_lock);
 }
 
 static void vfe_config_axi(int mode,
@@ -677,6 +681,7 @@ static int vfe_init(struct msm_vfe_callback *presp, struct platform_device *dev)
 
 void msm_camvfe_fn_init(struct msm_camvfe_fn *fptr, void *data)
 {
+	mutex_init(&vfe_lock);
 	fptr->vfe_init = vfe_init;
 	fptr->vfe_enable = vfe_enable;
 	fptr->vfe_config = vfe_config;

@@ -748,8 +748,7 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 
 	rp = ctrl->resp->vfe_alloc(sizeof(*rp) +
 					(vfe_funcs[id].fn ? sizeof(*msg) : 0),
-					ctrl->syncdata,
-					GFP_ATOMIC);
+				   ctrl->syncdata);
 	if (!rp) {
 		pr_err("%s: out of memory\n", __func__);
 		return;
@@ -779,7 +778,7 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 		}
 	}
 
-	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata, GFP_ATOMIC);
+	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata);
 }
 
 static boolean vfe_send_bus_overflow_msg(struct msm_vfe_resp *rp,

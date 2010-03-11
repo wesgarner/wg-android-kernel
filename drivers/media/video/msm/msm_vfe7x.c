@@ -103,9 +103,7 @@ static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
 	void *data;
 
 	len = (id == (uint16_t)-1) ? 0 : len;
-	data = resp->vfe_alloc(sizeof(struct msm_vfe_resp) + len,
-			vfe_syncdata,
-			GFP_ATOMIC);
+	data = resp->vfe_alloc(sizeof(struct msm_vfe_resp) + len, vfe_syncdata);
 
 	if (!data) {
 		pr_err("rp: cannot allocate buffer\n");
@@ -120,9 +118,7 @@ static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
 		rp->evt_msg.type = MSM_CAMERA_EVT;
 		getevent(evt_buf, sizeof(evt_buf));
 		rp->evt_msg.msg_id = evt_buf[0];
-		resp->vfe_resp(rp, MSM_CAM_Q_VFE_EVT,
-				vfe_syncdata,
-				GFP_ATOMIC);
+		resp->vfe_resp(rp, MSM_CAM_Q_VFE_EVT, vfe_syncdata);
 	} else {
 		/* messages */
 		rp->evt_msg.type = MSM_CAMERA_MSG;
@@ -173,7 +169,7 @@ static void vfe_7x_ops(void *driver_data, unsigned id, size_t len,
 			rp->type = VFE_MSG_GENERAL;
 			break;
 		}
-		resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, vfe_syncdata, GFP_ATOMIC);
+		resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, vfe_syncdata);
 	}
 }
 

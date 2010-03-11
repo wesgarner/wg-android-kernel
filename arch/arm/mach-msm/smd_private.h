@@ -68,6 +68,14 @@ struct smsm_interrupt_info
 	uint32_t aArm_en_mask;
 	uint32_t aArm_interrupts_pending;
 	uint32_t aArm_wakeup_reason;
+#if CONFIG_MSM_AMSS_VERSION == 6355
+#define SMSM_MAX_PORT_NAME_LEN    20
+        uint32_t aArm_rpc_prog;
+        uint32_t aArm_rpc_proc;
+        char aArm_smd_port_name[SMSM_MAX_PORT_NAME_LEN];
+        /* If the wakeup reason is GPIO then send the gpio info */
+        uint32_t aArm_gpio_info;
+#endif        
 };
 
 #define SZ_DIAG_ERR_MSG 0xC8

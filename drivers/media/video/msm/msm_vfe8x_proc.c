@@ -849,11 +849,17 @@ static void vfe_process_camif_sof_irq(void)
 	}
 }
 
-static boolean vfe_get_af_pingpong_status(void)
+static int vfe_get_af_pingpong_status(void)
 {
-	uint32_t busPingPongStatus =
-		readl(ctrl->vfebase + VFE_BUS_PINGPONG_STATUS);
-	return !!(busPingPongStatus & VFE_AF_PINGPONG_STATUS_BIT);
+	uint32_t busPingPongStatus;
+	int rc = 0;
+
+	busPingPongStatus = readl(ctrl->vfebase + VFE_BUS_PINGPONG_STATUS);
+
+	if ((busPingPongStatus & VFE_AF_PINGPONG_STATUS_BIT) == 0)
+		return -EFAULT;
+
+	return rc;
 }
 
 static uint32_t vfe_read_af_buf_addr(boolean pipo)

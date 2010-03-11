@@ -1815,8 +1815,10 @@ static int usb_find_descriptor(struct usb_info *ui, unsigned id, struct usb_requ
 
 		for (i = 0; i < ui->num_funcs; i++) {
 			struct usb_function_info *fi = ui->func[i];
-			ptr = copy_ifc_descriptors(ptr, SETUP_BUF_SIZE - (ptr - start), ui, i);
-			ifc_count += fi->func->ifc_num ? fi->func->ifc_num : 1;
+			if (ui->included_functions & BIT(fi->func->position_bit)) {
+				ptr = copy_ifc_descriptors(ptr, SETUP_BUF_SIZE - (ptr - start), ui, i);
+				ifc_count += fi->func->ifc_num ? fi->func->ifc_num : 1;
+			}
 		}
 
 		cfg.bLength = USB_DT_CONFIG_SIZE;

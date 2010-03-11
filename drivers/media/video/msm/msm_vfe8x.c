@@ -19,15 +19,12 @@
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
 #include <mach/irqs.h>
-#include <linux/clk.h>
 #include "msm_vfe8x_proc.h"
 
 #define ON  1
 #define OFF 0
 
 static void *vfe_syncdata;
-static struct clk *ebi1_clk;
-static const char *const clk_name = "ebi1_clk";
 
 static int vfe_enable(struct camera_enable_cmd *enable)
 {
@@ -42,38 +39,8 @@ static int vfe_disable(struct camera_enable_cmd *enable,
 	return 0;
 }
 
-static int vfe_init(struct msm_vfe_callback *presp, struct platform_device *dev)
-{
-	int rc = 0;
-
-	ebi1_clk = clk_get(NULL, clk_name);
-	if (!ebi1_clk) {
-		pr_err("%s: could not get %s\n", __func__, clk_name);
-		return -EIO;
-	}
-
-	rc = clk_set_rate(ebi1_clk, 128000000);
-	if (rc < 0) {
-		pr_err("%s: clk_set_rate(%s) failed: %d\n", __func__,
-			clk_name, rc);
-		return rc;
-	}
-
-	rc = vfe_cmd_init(presp, dev, vfe_syncdata);
-	if (rc < 0)
-		return rc;
-
-	/* Bring up all the required GPIOs and Clocks */
-	return msm_camio_enable(dev);
-}
-
 static void vfe_release(struct platform_device *dev)
 {
-	if (ebi1_clk) {
-		clk_set_rate(ebi1_clk, 0);
-		clk_put(ebi1_clk);
-		ebi1_clk = 0;
-	}
 	msm_camio_disable(dev);
 	vfe_cmd_release(dev);
 	vfe_syncdata = NULL;
@@ -135,9 +102,6 @@ static void vfe_config_axi(int mode,
 	}
 }
 
-#define ERR_COPY_FROM_USER() \
-	pr_err("%s(%d): copy from user\n", __func__, __LINE__)
-
 #define CHECKED_COPY_FROM_USER(in) {					\
 	if (cmd->length != sizeof(*(in))) {				\
 		pr_err("msm_camera: %s:%d cmd %d: user data size %d "	\
@@ -149,7 +113,6 @@ static void vfe_config_axi(int mode,
 	}								\
 	if (copy_from_user((in), (void __user *)cmd->value,		\
 			sizeof(*(in)))) {				\
-		ERR_COPY_FROM_USER();					\
 		rc = -EFAULT;						\
 		break;							\
 	}								\
@@ -495,13 +458,6 @@ static int vfe_proc_general(struct msm_vfe_command_8k *cmd)
 	case VFE_CMD_ID_TEST_GEN_START:
 		break;
 
-	case VFE_CMD_ID_EPOCH1_CONFIG:{
-			struct vfe_cmds_camif_epoch epoch1;
-			CHECKED_COPY_FROM_USER(&epoch1);
-			vfe_epoch1_config(&epoch1);
-		}
-		break;
-
 /*
   acknowledge from upper layer
 	these are not in general command.
@@ -543,7 +499,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 	    cmd->cmd_type != CMD_STATS_AF_BUF_RELEASE) {
 		if (copy_from_user(&vfecmd,
 				   (void __user *)(cmd->value), sizeof(vfecmd))) {
-			ERR_COPY_FROM_USER();
+			pr_err("%s %d: copy_from_user failed\n", __func__, __LINE__);
 			return -EFAULT;
 		}
 	}
@@ -575,7 +531,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 			if (copy_from_user(&scfg,
 					   (void __user *)(vfecmd.value),
 					   sizeof(scfg))) {
-				ERR_COPY_FROM_USER();
+				pr_err("%s %d: copy_from_user failed\n", __func__, __LINE__);
 				return -EFAULT;
 			}
 
@@ -658,7 +614,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 			if (copy_from_user(&axio, (void __user *)(vfecmd.value),
 					   sizeof(axio))) {
-				ERR_COPY_FROM_USER();
+				pr_err("%s %d: copy_from_user failed\n", __func__, __LINE__);
 				return -EFAULT;
 			}
 
@@ -674,7 +630,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 			if (copy_from_user(&axio, (void __user *)(vfecmd.value),
 					   sizeof(axio))) {
-				ERR_COPY_FROM_USER();
+				pr_err("%s %d: copy_from_user failed\n", __func__, __LINE__);
 				return -EFAULT;
 			}
 
@@ -691,7 +647,7 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 
 			if (copy_from_user(&axio, (void __user *)(vfecmd.value),
 					   sizeof(axio))) {
-				ERR_COPY_FROM_USER();
+				pr_err("%s %d: copy_from_user failed\n", __func__, __LINE__);
 				return -EFAULT;
 			}
 
@@ -705,6 +661,18 @@ static int vfe_config(struct msm_vfe_cfg_cmd *cmd, void *data)
 	}			/* switch */
 
 	return rc;
+}
+
+static int vfe_init(struct msm_vfe_callback *presp, struct platform_device *dev)
+{
+	int rc = 0;
+
+	rc = vfe_cmd_init(presp, dev, vfe_syncdata);
+	if (rc < 0)
+		return rc;
+
+	/* Bring up all the required GPIOs and Clocks */
+	return msm_camio_enable(dev);
 }
 
 void msm_camvfe_fn_init(struct msm_camvfe_fn *fptr, void *data)

@@ -23,6 +23,7 @@
 #include <linux/list.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
+#include <linux/workqueue.h>
 #include "msm_vfe8x_proc.h"
 #include <media/msm_camera.h>
 #include <mach/board.h>
@@ -45,7 +46,6 @@ struct msm_vfe8x_ctrl {
 	struct vfe_irq_composite_mask_config vfeIrqCompositeMaskLocal;
 	struct vfe_module_enable vfeModuleEnableLocal;
 	struct vfe_camif_cfg_data vfeCamifConfigLocal;
-	struct vfe_cmds_camif_epoch vfeCamifEpoch1Local;
 	struct vfe_interrupt_mask vfeImaskLocal;
 	struct vfe_stats_cmd_data vfeStatsCmdLocal;
 	struct vfe_bus_cfg_data vfeBusConfigLocal;
@@ -90,7 +90,7 @@ struct msm_vfe8x_ctrl {
 	struct msm_vfe_callback *resp;
 	struct vfe_frame_extra extdata;
 
-	struct isr_queue_cmd irqs[5];
+	struct isr_queue_cmd irqs[10];
 	spinlock_t irqs_lock;
 	int irq_get;
 	int irq_put;
@@ -727,10 +727,9 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 {
 	struct msm_vfe_resp *rp;
 	struct vfe_message *msg;
-	struct msm_sync *sync = (struct msm_sync *)ctrl->syncdata;
 
-	CDBG("ctrl->vfeOperationMode = %d, msgId = %d\n",
-	     ctrl->vfeOperationMode, id);
+	CDBG("ctrl->vfeOperationMode = %d, msgId = %d, len = %d\n",
+	     ctrl->vfeOperationMode, id, len);
 
 	if (id >= ARRAY_SIZE(vfe_funcs) || vfe_funcs[id].fn == invalid) {
 		pr_err("%s: invalid VFE message id %d\n", __func__, id);
@@ -751,7 +750,7 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 	rp = ctrl->resp->vfe_alloc(sizeof(*rp) +
 					(vfe_funcs[id].fn ? sizeof(*msg) : 0),
 					ctrl->syncdata,
-					GFP_ATOMIC);
+					GFP_KERNEL);
 	if (!rp) {
 		pr_err("%s: out of memory\n", __func__);
 		return;
@@ -760,15 +759,6 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 	rp->type = vfe_funcs[id].rt;
 	rp->evt_msg.type = MSM_CAMERA_MSG;
 	rp->evt_msg.msg_id = id;
-
-	/* Turn off the flash if epoch1 is enabled and snapshot is done. */
-	if (ctrl->vfeCamifEpoch1Local.enable &&
-			ctrl->vfeOperationMode ==
-				VFE_START_OPERATION_MODE_SNAPSHOT &&
-			id == VFE_MSG_ID_SNAPSHOT_DONE) {
-		ctrl->resp->flash_ctrl(sync, MSM_CAMERA_LED_OFF);
-		ctrl->vfeCamifEpoch1Local.enable = 0;
-	}
 
 	if (!vfe_funcs[id].fn) {
 		rp->evt_msg.len = 0;
@@ -790,7 +780,7 @@ static void vfe_proc_ops(enum VFE_MESSAGE_ID id, void *data)
 		}
 	}
 
-	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata, GFP_ATOMIC);
+	ctrl->resp->vfe_resp(rp, MSM_CAM_Q_VFE_MSG, ctrl->syncdata, GFP_KERNEL);
 }
 
 static boolean vfe_send_bus_overflow_msg(struct msm_vfe_resp *rp,
@@ -839,27 +829,6 @@ static void vfe_process_error_irq(struct isr_queue_cmd *qcmd)
 
 	if (irqstatus->violationIrq)
 		pr_err("%s: violation irq\n", __func__);
-}
-
-/* We use epoch1 interrupt to control flash timing. The purpose is to reduce the
- * flash duration as much as possible. Userspace driver has no way to control
- * the exactly timing like VFE. Currently we skip a frame during snapshot.
- * We want to fire the flash in the middle of the first frame. Epoch1 interrupt
- * allows us to set a line index and we will get an interrupt when VFE reaches
- * the line. Userspace driver sets the line index in camif configuration. VFE
- * will fire the flash in high mode when it gets the epoch1 interrupt. Flash
- * will be turned off after snapshot is done.
- */
-static void vfe_process_camif_epoch1_irq(void)
-{
-	/* Turn on the flash. */
-	struct msm_sync *sync = (struct msm_sync *)ctrl->syncdata;
-	ctrl->resp->flash_ctrl(sync, MSM_CAMERA_LED_HIGH);
-
-	/* Disable the epoch1 interrupt. */
-	ctrl->vfeImaskLocal.camifEpoch1Irq = FALSE;
-	ctrl->vfeImaskPacked = vfe_irq_pack(ctrl->vfeImaskLocal);
-	vfe_program_irq_mask(ctrl->vfeImaskPacked);
 }
 
 static void vfe_process_camif_sof_irq(void)
@@ -1293,8 +1262,6 @@ static void vfe_process_reset_irq(void)
 
 	if (ctrl->vfeStopAckPending == TRUE) {
 		ctrl->vfeStopAckPending = FALSE;
-		/* disable all irqs when got stop ack from VFE */
-		vfe_program_irq_mask(VFE_DISABLE_ALL_IRQS);
 		vfe_proc_ops(VFE_MSG_ID_STOP_ACK, NULL);
 	} else {
 		vfe_set_default_reg_values();
@@ -1613,7 +1580,7 @@ static void vfe_process_output_path_irq(struct vfe_interrupt_status *irqstatus)
 	}
 }
 
-static void __vfe_do_tasklet(struct isr_queue_cmd *qcmd)
+static void __vfe_do_work(struct isr_queue_cmd *qcmd)
 {
 	if (qcmd->vfeInterruptStatus.regUpdateIrq) {
 		CDBG("irq regUpdateIrq\n");
@@ -1628,11 +1595,10 @@ static void __vfe_do_tasklet(struct isr_queue_cmd *qcmd)
 	if (ctrl->vstate != VFE_STATE_ACTIVE)
 		return;
 
-	if (qcmd->vfeInterruptStatus.camifEpoch1Irq) {
-		vfe_process_camif_epoch1_irq();
-	}
-
 #if 0
+	if (qcmd->vfeInterruptStatus.camifEpoch1Irq)
+		vfe_proc_ops(VFE_MSG_ID_EPOCH1);
+
 	if (qcmd->vfeInterruptStatus.camifEpoch2Irq)
 		vfe_proc_ops(VFE_MSG_ID_EPOCH2);
 #endif
@@ -1684,30 +1650,30 @@ static struct isr_queue_cmd *next_irq_cmd(void)
 {
 	unsigned long flags;
 	struct isr_queue_cmd *cmd;
-	spin_lock_irqsave(&ctrl->irqs_lock, flags);
+	spin_lock_irqsave(ctrl->irqs_lock, flags);
 	if (ctrl->irq_get == ctrl->irq_put) {
-		spin_unlock_irqrestore(&ctrl->irqs_lock, flags);
+		spin_unlock_irqrestore(ctrl->irqs_lock, flags);
 		return NULL; /* already empty */
 	}
 	cmd = ctrl->irqs + ctrl->irq_put;
-	spin_unlock_irqrestore(&ctrl->irqs_lock, flags);
+	spin_unlock_irqrestore(ctrl->irqs_lock, flags);
 	return cmd;
 }
 
 static void put_irq_cmd(void)
 {
 	unsigned long flags;
-	spin_lock_irqsave(&ctrl->irqs_lock, flags);
+	spin_lock_irqsave(ctrl->irqs_lock, flags);
 	if (ctrl->irq_get == ctrl->irq_put) {
-		spin_unlock_irqrestore(&ctrl->irqs_lock, flags);
+		spin_unlock_irqrestore(ctrl->irqs_lock, flags);
 		return; /* already empty */
 	}
 	ctrl->irq_put++;
 	ctrl->irq_put %= ARRAY_SIZE(ctrl->irqs);
-	spin_unlock_irqrestore(&ctrl->irqs_lock, flags);
+	spin_unlock_irqrestore(ctrl->irqs_lock, flags);
 }
 
-static void vfe_do_tasklet(unsigned long data)
+static void vfe_do_work(struct work_struct *work)
 {
 	int cnt = 0;
 	struct isr_queue_cmd *qcmd = NULL;
@@ -1715,16 +1681,16 @@ static void vfe_do_tasklet(unsigned long data)
 	CDBG("%s\n", __func__);
 
 	while ((qcmd = next_irq_cmd())) {
-		__vfe_do_tasklet(qcmd);
+		__vfe_do_work(qcmd);
 		put_irq_cmd();
 		cnt++;
 	}
 
-	if (cnt > 1)
+	if (cnt > ARRAY_SIZE(ctrl->irqs)/2)
 		pr_info("%s: serviced %d vfe interrupts\n", __func__, cnt);
 }
 
-DECLARE_TASKLET(vfe_tasklet, vfe_do_tasklet, 0);
+DECLARE_WORK(vfe_work, vfe_do_work);
 
 static irqreturn_t vfe_parse_irq(int irq_num, void *data)
 {
@@ -1762,7 +1728,7 @@ static irqreturn_t vfe_parse_irq(int irq_num, void *data)
 	vfe_get_camif_status(&qcmd->vfeCamifStatusLocal, &irq);
 	vfe_get_performance_monitor_data(&qcmd->vfePmData, &irq);
 	spin_unlock_irqrestore(&ctrl->irqs_lock, flags);
-	tasklet_schedule(&vfe_tasklet);
+	schedule_work(&vfe_work);
 
 done:
 	/* clear the pending interrupt of the same kind. */
@@ -1806,8 +1772,6 @@ int vfe_cmd_init(struct msm_vfe_callback *presp,
 		rc = -ENOMEM;
 		goto cmd_init_failed1;
 	}
-
-	spin_lock_init(&ctrl->irqs_lock);
 
 	ctrl->vfeirq = vfeirq->start;
 
@@ -3615,27 +3579,6 @@ void vfe_axi_output_config(struct vfe_cmd_axi_output_config *in)
 
 	/* call to program the registers. */
 	vfe_axi_output(in, &ctrl->viewPath, &ctrl->encPath, axioutpw);
-}
-
-void vfe_epoch1_config(struct vfe_cmds_camif_epoch *in)
-{
-	struct vfe_epoch1cfg cmd;
-	memset(&cmd, 0, sizeof(cmd));
-	/* determine if epoch interrupt needs to be enabled. */
-	if (in->enable == TRUE) {
-		cmd.epoch1Line = in->lineindex;
-		vfe_prog_hw(ctrl->vfebase + CAMIF_EPOCH_IRQ, (uint32_t *)&cmd,
-					sizeof(cmd));
-	}
-
-	/* Set the epoch1 interrupt mask. */
-	ctrl->vfeImaskLocal.camifEpoch1Irq = in->enable;
-	ctrl->vfeImaskPacked = vfe_irq_pack(ctrl->vfeImaskLocal);
-	vfe_program_irq_mask(ctrl->vfeImaskPacked);
-
-	/* Store the epoch1 data. */
-	ctrl->vfeCamifEpoch1Local.enable = in->enable;
-	ctrl->vfeCamifEpoch1Local.lineindex = in->lineindex;
 }
 
 void vfe_camif_config(struct vfe_cmd_camif_config *in)

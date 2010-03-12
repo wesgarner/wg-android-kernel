@@ -1,0 +1,79 @@
+#!/bin/bash
+
+export BASE=$PWD
+JPATH=$(which java)
+
+if [ "A${JPATH}" = "A" ]; then
+	echo "**************************"
+	echo " JAVA compiler not found"
+	echo " Install and retry"
+	echo "**************************"
+	echo
+	exit 1
+fi
+
+if [ ! -d $BASE/output ]; then
+	echo "***********************"
+	echo " output/ dir not found"
+	echo " first build a kernel"
+	echo " using ./make.kernel"
+	echo "***********************"
+	echo
+	exit 1
+fi
+
+if [ ! -s $BASE/output/boot.img ]; then
+	echo "***********************"
+	echo " boot.img not found"
+	echo " first build a kernel"
+	echo " using ./make.kernel"
+	echo "***********************"
+	echo
+	exit 1
+fi
+
+if [ ! -s $BASE/output/wtan.ko ]; then
+	echo "***********************"
+	echo " wlan.ko not found"
+	echo " no working wi-fi"
+	echo " with this kernel"
+	echo "***********************"
+	echo
+fi
+
+# Clean package-tree dir
+rm -f $BASE/package-tree/boot.img > /dev/null 2>&1
+rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
+rm -f $BASE/package-tree/system/lib/modules/*.ko > /dev/null 2>&1
+rm -f $BASE/package-tree/*.zip
+
+echo "Copying files..."
+mv -f $BASE/output/boot.img $BASE/package-tree/ > /dev/null
+if [ -s $BASE/output/ramzswap.ko ]; then
+	mv -f $BASE/output/ramzswap.ko $BASE/package-tree/system/lib/compcache/ > /dev/null
+fi
+mv $BASE/output/*.ko $BASE/package-tree/system/lib/modules/ > /dev/null
+
+echo "Making zip file..."
+cd $BASE/package-tree
+zip -r Package.zip * > /dev/null
+
+echo "Signing zip file..."
+mv -f $BASE/package-tree/Package.zip $BASE/build-utils/ > /dev/null
+cd $BASE/build-utils/
+$JPATH -classpath testsign.jar testsign Package.zip Package-SIGN.zip
+rm -f $BASE/build-utils/Package.zip > /dev/null
+mv -f $BASE/build-utils/Package-SIGN.zip $BASE/ > /dev/null
+
+cd $BASE
+
+echo 
+echo "********************"
+echo " GOT SIGNED PACKAGE "
+echo " Package-SIGN.zip"
+echo "********************"
+echo 
+echo "Bye, merlos"
+echo
+
+exit 0

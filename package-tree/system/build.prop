@@ -1,0 +1,30 @@
+# begin build properties
+ro.build.version.sdk=4
+ro.build.version.release=1.6
+ro.build.version.codename=REL
+ro.build.type=user
+ro.build.user=shade
+ro.build.host=toxygene
+ro.build.tags=ota-rel-keys,test-keys
+
+#
+# ADDITIONAL_BUILD_PROPERTIES
+#
+ro.config.notification_sound=F1_New_SMS.ogg
+ro.com.google.locationfeatures=1
+ro.com.android.wifi-watchlist=GoogleGuest
+ro.com.android.dateformat=MM-dd-yyyy
+ro.com.android.dataroaming=true
+ro.com.google.clientidbase=android-tmobile
+ro.setupwizard.mode=OPTIONAL
+ro.url.legal=http://www.google.com/intl/%s/mobile/android/android-dev-phone-legal.html
+ro.url.legal.android_privacy=http://www.google.com/intl/%s/mobile/android/android-dev-phone-privacy.html
+keyguard.no_require_sim=true
+ro.config.sync=yes
+net.bt.name=Android
+dalvik.vm.stack-trace-file=/data/anr/traces.txt
+
+# Google's checkin service.  I don't like it, but it's required for the SetupWizard -bb
+#ro.config.nocheckin=1
+
+ro.modversion=SuperD1.9.3 + WG + 32Aport by merlos

@@ -26,6 +26,7 @@
 *.bin
 *.gz
 out/*
+output/*
 arch/arm/mach-msm/board-sapphire.h
 arch/arm/mach-msm/board-trout.h
 
@@ -53,6 +54,10 @@ include/linux/compile.h
 include/linux/version.h
 include/linux/utsrelease.h
 include/linux/bounds.h
+
+# MISC
+boot.img
+*.zip
 
 # stgit generated dirs
 patches-*

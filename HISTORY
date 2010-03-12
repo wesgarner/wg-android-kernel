@@ -1,0 +1,5 @@
+=== HISTORY FILE ===
+
+12 Mar 2010
+* Revert all patches applied to WG kernen v4-cfs to have 3d working /w donut roms (SuperD)
+* Added some script to automate kernel build 

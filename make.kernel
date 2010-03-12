@@ -97,7 +97,7 @@ else
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
-find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null
+find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null 
 # Overvrite wlan.ko /w the one from htc sources
 mv -f $WLAN_SOURCE_PATH/wlan.ko $KERNEL_DIR/output/ > /dev/null
 

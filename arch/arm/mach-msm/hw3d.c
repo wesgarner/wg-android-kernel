@@ -101,7 +101,6 @@ static long hw3d_wait_for_interrupt(void)
 
 static long hw3d_revoke_gpu(struct file *file)
 {
-<<<<<<< HEAD:arch/arm/mach-msm/hw3d.c
 	int ret = 0;
 	unsigned long user_start, user_len;
 	struct pmem_region region = {.offset = 0x0, .len = HW3D_REGS_LEN};
@@ -120,72 +119,6 @@ static long hw3d_revoke_gpu(struct file *file)
 	hw3d_granted = 0;
 end:
 	up(&hw3d_sem);
-=======
-	struct hw3d_info *info = hw3d_info;
-	if (MAJOR(file->f_dentry->d_inode->i_rdev) == MISC_MAJOR &&
-	    (is_master(info, file) || is_client(info, file)))
-		return 1;
-	return 0;
-}
-
-void put_msm_hw3d_file(struct file *file)
-{
-	if (!is_msm_hw3d_file(file))
-		return;
-	fput(file);
-}
-
-int get_msm_hw3d_file(int fd, int region, uint32_t offs, unsigned long *pbase,
-		      unsigned long *len, struct file **filp)
-{
-	struct hw3d_info *info = hw3d_info;
-	struct file *file;
-	struct hw3d_data *data;
-	int ret = 0;
-
-	if (unlikely(region >= HW3D_NUM_REGIONS)) {
-		VDBG("hw3d: invalid region %d requested\n", region);
-		return -EINVAL;
-	} else if (unlikely(offs >= info->regions[region].size)) {
-		VDBG("hw3d: offset %08x outside of the requested region %d\n",
-		     offs, region);
-		return -EINVAL;
-	}
-
-	file = fget(fd);
-	if (unlikely(file == NULL)) {
-		pr_info("%s: requested data from file descriptor that doesn't "
-			"exist.", __func__);
-		return -EINVAL;
-	} else if (!is_msm_hw3d_file(file)) {
-		ret = -1;
-		goto err;
-	}
-
-	data = file->private_data;
-	if (unlikely(!data)) {
-		VDBG("hw3d: invalid file\n");
-		ret = -EINVAL;
-		goto err;
-	}
-
-	mutex_lock(&data->mutex);
-	if (unlikely(!data->vmas[region])) {
-		mutex_unlock(&data->mutex);
-		VDBG("hw3d: requested hw3d region is not mapped\n");
-		ret = -ENOENT;
-		goto err;
-	}
-
-	*pbase = info->regions[region].pbase;
-	*filp = file;
-	*len = data->vmas[region]->vm_end - data->vmas[region]->vm_start;
-	mutex_unlock(&data->mutex);
-	return 0;
-
-err:
-	fput(file);
->>>>>>> 9ec61c8... [ARM] msm: hw3d: Clean up the interface to get file from fd:arch/arm/mach-msm/hw3d.c
 	return ret;
 }
 

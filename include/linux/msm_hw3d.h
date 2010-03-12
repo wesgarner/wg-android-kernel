@@ -46,7 +46,10 @@ struct hw3d_region {
 	unsigned long		len;
 };
 
+<<<<<<< HEAD:include/linux/msm_hw3d.h
 #ifdef CONFIG_MSM_HW3D
+=======
+>>>>>>> 9ec61c8... [ARM] msm: hw3d: Clean up the interface to get file from fd:include/linux/msm_hw3d.h
 int get_msm_hw3d_file(int fd, int region, uint32_t offs, unsigned long *pbase,
 		      unsigned long *len, struct file **filp);
 void put_msm_hw3d_file(struct file *file);

@@ -3,6 +3,7 @@
 #
 persist.service.memctl_state=1
 persist.service.memctl_size=24568
+persist.service.memctl_swappiness=60
 ro.secure=0
 ro.allow.mock.location=1
 ro.debuggable=1

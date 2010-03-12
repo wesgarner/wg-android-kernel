@@ -8,6 +8,27 @@ export KERNEL_DIR=$PWD
 CROSS_COMPILE_PATH=/home/giovanni/AndroidSource/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
 WLAN_SOURCE_PATH=/home/giovanni/AndroidSource/system/wlan/ti/sta_dk_4_0_4_32
 
+# Check if we have a clean env
+if [ -f $KERNEL_DIR/vmlinux.o ]; then
+	echo "**************************"
+	echo " Seems that you must run *"
+	echo "   #make mrproper"
+	echo 
+	echo "then remember to copy your"
+	echo " .config file"
+	echo "**************************"
+	exit 1
+fi
+
+# Some check before start
+if [ ! -f $KERNEL_DIR/.config ]; then
+	echo "************************"
+	echo " No .config file found *"
+	echo "************************"
+	echo
+	exit 1
+fi
+
 # Build Kernel
 echo "Start building Android Kernel..."
 echo
@@ -76,14 +97,17 @@ else
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
-mv -f $WLAN_SOURCE_PATH/wlan.ko $KERNEL_DIR/output/ /dev/null
-find $KERNEL_DIR -name *.ko -exec mv '{}' $KERNEL_DIR/output/ \; /dev/null
+find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null
+# Overvrite wlan.ko /w the one from htc sources
+mv -f $WLAN_SOURCE_PATH/wlan.ko $KERNEL_DIR/output/ > /dev/null
 
 echo "================================="
 echo "   Look into output/ directory   "
 echo "   for boot.img and .ko files    "
 echo "================================="
 echo
+echo
+echo "Bye, merlos"
 echo
 
 exit 0

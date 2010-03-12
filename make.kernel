@@ -1,6 +1,89 @@
 #!/bin/bash
+
+# set kernel dir
+export KERNEL_DIR=$PWD
+
+# GLOBAL VARS
+# adjust cross compile path !!!
+CROSS_COMPILE_PATH=/home/giovanni/AndroidSource/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
+WLAN_SOURCE_PATH=/home/giovanni/AndroidSource/system/wlan/ti/sta_dk_4_0_4_32
+
+# Build Kernel
+echo "Start building Android Kernel..."
+echo
 if [ -e /usr/bin/ccache ]; then
-	ccache make -j4 KERNEL_DIR=$PWD CROSS_COMPILE=/home/wesgarner/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm $1
+	ccache make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=arm $1
 else
-	make -j4 KERNEL_DIR=$PWD CROSS_COMPILE=/home/wesgarner/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm $1
+	make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=arm $1
 fi;
+
+if [ $? -ne 0 ]; then
+	echo
+	echo "**************************"
+	echo "* ERROR BUILDING KERNEL  *"
+	echo "**************************"
+	exit 1
+else
+	echo 
+	echo "Android Kernel Built!!"
+fi
+
+# Make boot.img
+echo
+echo
+echo "Making boot.img..."
+echo
+
+$KERNEL_DIR/build-utils/repack-H.pl $KERNEL_DIR/arch/arm/boot/zImage ramdisk-gm boot.img
+
+if [ $? -ne 0 ]; then
+	echo
+	echo "**************************"
+	echo "* ERROR MAKING boot.img  *"
+	echo "**************************"
+	exit 1
+else
+	echo 
+	echo "boot.img done!!"
+fi
+
+# Make wlan.ko 
+echo
+echo
+echo "Making wlan.ko module..."
+echo
+
+cd $WLAN_SOURCE_PATH
+make clean; make
+
+if [ $? -ne 0 ]; then
+        echo
+        echo "************************"
+        echo "* ERROR MAKING wlan.ko *"
+        echo "************************"
+        exit 1
+else
+        echo 
+        echo "wlan.ko done!!"
+fi
+
+# Prepare OUTPUT DIR with all files
+cd $KERNEL_DIR
+if [ ! -d output ]; then
+	mkdir output;
+else
+	rm -f $KERNEL_DIR/output
+fi
+
+mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
+mv -f $WLAN_SOURCE_PATH/wlan.ko $KERNEL_DIR/output/ /dev/null
+find $KERNEL_DIR -name *.ko -exec mv '{}' $KERNEL_DIR/output/ \; /dev/null
+
+echo "================================="
+echo "   Look into output/ directory   "
+echo "   for boot.img and .ko files    "
+echo "================================="
+echo
+echo
+
+exit 0

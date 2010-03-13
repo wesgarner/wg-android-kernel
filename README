@@ -1,3 +1,28 @@
+== Welcome to WG-Kernel ==
+== some tweak by merlos ==
+
+Information on how to compile:
+To compile an Android kernel, you must have CROSS_COMPILE installed on your machine
+
+You have 2 main files
+
+= make.kernel =
+!! ADJUST CROSS_COMPILE PATH !!
+Is the file that build the kernel image and all the modules.
+In the root dir you can find some configuration file (config and config2 from wesgarner and config-gm-* from merlos - for 32A devices)
+Before launch ./make.kernel command you need to copy one of these files on .config
+
+After compiling, the script make boot.img (from zImage) and you can find on output/ dir all the files your kernel needs to boot
+
+= make.sign =
+Launch this script to make a signed package of the newly built kernel. This script use the package-tree dir as a base.
+After that you have a file named Package-SIGN.zip on your root dir, the one you can flash 
+I use this to make 32A port of Wes Garner Kernel
+
+A huge tks to Wes for his support and his kernel 
+
+
+
 	Linux kernel release 2.6.xx <http://kernel.org/>
 
 These are the release notes for Linux version 2.6.  Read them carefully,

@@ -2,20 +2,33 @@
 
 # set kernel dir
 export KERNEL_DIR=$PWD
+export PATH=$PATH:$PWD/build-utils
+export INSTALL_MOD_PATH=$PWD/output
 
-# GLOBAL VARS
-# adjust cross compile path !!!
+if [ "$1" = "clean" ]; then
+	make clean
+	exit 0
+fi
+
+if [ "$1" = "mrproper" ]; then
+	make mrproper
+	exit 0
+fi
+
+if [ "$1" = "oldconfig" ]; then
+	make oldconfig
+	exit 0
+fi
+
+# YOU NEED CROSSCOMPILE
+# adjust your cross compile path !!!
 CROSS_COMPILE_PATH=/home/giovanni/AndroidSource/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
-WLAN_SOURCE_PATH=/home/giovanni/AndroidSource/system/wlan/ti/sta_dk_4_0_4_32
 
 # Check if we have a clean env
 if [ -f $KERNEL_DIR/vmlinux.o ]; then
 	echo "**************************"
 	echo " Seems that you must run *"
-	echo "   #make mrproper"
-	echo 
-	echo "then remember to copy your"
-	echo " .config file"
+	echo "   #make clean"
 	echo "**************************"
 	exit 1
 fi
@@ -68,26 +81,6 @@ else
 	echo "boot.img done!!"
 fi
 
-# Make wlan.ko 
-echo
-echo
-echo "Making wlan.ko module..."
-echo
-
-cd $WLAN_SOURCE_PATH
-make clean; make
-
-if [ $? -ne 0 ]; then
-        echo
-        echo "************************"
-        echo "* ERROR MAKING wlan.ko *"
-        echo "************************"
-        exit 1
-else
-        echo 
-        echo "wlan.ko done!!"
-fi
-
 # Prepare OUTPUT DIR with all files
 cd $KERNEL_DIR
 if [ ! -d output ]; then
@@ -97,9 +90,7 @@ else
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
-find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null 
-# Overvrite wlan.ko /w the one from htc sources
-mv -f $WLAN_SOURCE_PATH/wlan.ko $KERNEL_DIR/output/ > /dev/null
+make modules_install > /dev/null
 
 echo "================================="
 echo "   Look into output/ directory   "

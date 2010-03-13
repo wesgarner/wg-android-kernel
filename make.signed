@@ -32,7 +32,7 @@ if [ ! -s $BASE/output/boot.img ]; then
 	exit 1
 fi
 
-if [ ! -s $BASE/output/wtan.ko ]; then
+if [ ! -s $BASE/output/wlan.ko ]; then
 	echo "***********************"
 	echo " wlan.ko not found"
 	echo " no working wi-fi"
@@ -41,11 +41,19 @@ if [ ! -s $BASE/output/wtan.ko ]; then
 	echo
 fi
 
+#Make Sure pacage dir is ready
+if [ ! -d $BASE/package-tree/system/lib/modules ]; then
+	mkdir -p $BASE/package-tree/system/lib/modules
+fi
+if [ ! -d $BASE/package-tree/system/lib/compcache ]; then
+	mkdir -p $BASE/package-tree/system/lib/compcache
+fi
+
 # Clean package-tree dir
 rm -f $BASE/package-tree/boot.img > /dev/null 2>&1
 rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
 rm -f $BASE/package-tree/system/lib/modules/*.ko > /dev/null 2>&1
-rm -f $BASE/package-tree/*.zip
+rm -f $BASE/package-tree/*.zip > /dev/null 2>&1
 
 echo "Copying files..."
 mv -f $BASE/output/boot.img $BASE/package-tree/ > /dev/null

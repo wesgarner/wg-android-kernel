@@ -90,7 +90,7 @@ else
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
-make modules_install > /dev/null
+find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null
 
 echo "================================="
 echo "   Look into output/ directory   "

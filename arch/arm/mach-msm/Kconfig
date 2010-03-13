@@ -6,6 +6,7 @@ config MSM_AMSS_VERSION
 	default 6220 if MSM_AMSS_VERSION_6220
 	default 6225 if MSM_AMSS_VERSION_6225
 	default 6350 if MSM_AMSS_VERSION_6350
+	default 6355 if MSM_AMSS_VERSION_6355
 
 choice
 	prompt "AMSS modem firmware version"
@@ -23,6 +24,9 @@ choice
 
 	config MSM_AMSS_VERSION_6350
 		bool "6.3.50"
+
+	config MSM_AMSS_VERSION_6355
+		bool "6.3.55"
 endchoice
 config MSM_AMSS_SUPPORT_256MB_EBI1
 	default n

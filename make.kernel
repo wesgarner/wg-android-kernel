@@ -20,10 +20,6 @@ if [ "$1" = "oldconfig" ]; then
 	exit 0
 fi
 
-# YOU NEED CROSSCOMPILE
-# adjust your cross compile path !!!
-CROSS_COMPILE_PATH=/home/giovanni/AndroidSource/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
-
 # Check if we have a clean env
 if [ -f $KERNEL_DIR/vmlinux.o ]; then
 	echo "**************************"
@@ -42,13 +38,18 @@ if [ ! -f $KERNEL_DIR/.config ]; then
 	exit 1
 fi
 
+# YOU NEED CROSSCOMPILE
+# adjust your cross compile path !!!
+export CROSS_COMPILE_PATH=/home/giovanni/AndroidSource/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
+export ARCH=arm
+
 # Build Kernel
 echo "Start building Android Kernel..."
 echo
 if [ -e /usr/bin/ccache ]; then
-	ccache make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=arm $1
+	ccache make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=$ARCH $1
 else
-	make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=arm $1
+	make -j4 KERNEL_DIR=$KERNEL_DIR CROSS_COMPILE=$CROSS_COMPILE_PATH ARCH=$ARCH $1
 fi;
 
 if [ $? -ne 0 ]; then
@@ -85,8 +86,6 @@ fi
 cd $KERNEL_DIR
 if [ ! -d output ]; then
 	mkdir output;
-else
-	rm -f $KERNEL_DIR/output
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null

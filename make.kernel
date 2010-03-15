@@ -4,6 +4,11 @@
 export KERNEL_DIR=$PWD
 export PATH=$PATH:$PWD/build-utils
 export INSTALL_MOD_PATH=$PWD/output
+## Set the ramdisk dir to make the boot.img
+# ramdisk.donut from Wes Garner
+# ramdisk.eclair from Wes Garner
+# ramdisk-gm from Giovanni Mellini with some customization
+export RAMDISK=ramdisk-gm
 
 if [ "$1" = "clean" ]; then
 	make clean
@@ -69,7 +74,7 @@ echo
 echo "Making boot.img..."
 echo
 
-$KERNEL_DIR/build-utils/repack-H.pl $KERNEL_DIR/arch/arm/boot/zImage ramdisk-gm boot.img
+$KERNEL_DIR/build-utils/repack-H.pl $KERNEL_DIR/arch/arm/boot/zImage $RAMDISK boot.img
 
 if [ $? -ne 0 ]; then
 	echo

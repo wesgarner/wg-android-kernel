@@ -129,7 +129,9 @@ on boot
 
 # Define the memory thresholds at which the above process classes will
 # be killed.  These numbers are in pages (4k).
-    if [ $(getprop ro.hardware) = 'sapphire' ]
+    # For sapphire and trout (32A devices) we use custom values
+    # The system is more responsive under load, forcing close unnecessary applications 
+    if [ $(getprop ro.hardware) = 'sapphire' -o $(getprop ro.hardware) = 'trout' ]
     then
       setprop ro.FOREGROUND_APP_MEM 1536
       setprop ro.VISIBLE_APP_MEM 3072
@@ -157,7 +159,7 @@ on boot
 
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
-    if [ $(getprop ro.hardware) = 'sapphire' ]
+    if [ $(getprop ro.hardware) = 'sapphire' -o $(getprop ro.hardware) = 'trout' ]
     then 
       write /sys/module/lowmemorykiller/parameters/minfree 1536,3072,4096,21000,23000,25000
     else

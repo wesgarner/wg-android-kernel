@@ -37,6 +37,11 @@ loglevel 3
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
     write /proc/sys/kernel/sched_child_runs_first 0
 
+    # performance tweaks for flash from Cyano
+    write /sys/block/mtdblock3/bdi/read_ahead_kb 4
+    write /sys/block/mtdblock4/bdi/read_ahead_kb 4
+    write /sys/block/mtdblock5/bdi/read_ahead_kb 4
+
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
     mount cgroup none /dev/cpuctl cpu
@@ -66,14 +71,42 @@ loglevel 3
     chown system system /data
     chmod 0771 /data
 
+    # Create dump dir and collect dumps.
+    # Do this before we mount cache so eventually we can use cache for
+    # storing dumps on platforms which do not have a dedicated dump partition.
+
+    mkdir /data/dontpanic
+    chown root log /data/dontpanic
+    chmod 0750 /data/dontpanic
+
+    # Collect apanic data, free resources and re-arm trigger
+    copy /proc/apanic_console /data/dontpanic/apanic_console
+    chown root log /data/dontpanic/apanic_console
+    chmod 0640 /data/dontpanic/apanic_console
+
+    copy /proc/apanic_threads /data/dontpanic/apanic_threads
+    chown root log /data/dontpanic/apanic_threads
+    chmod 0640 /data/dontpanic/apanic_threads
+
+    write /proc/apanic_console 1
+
+    # Collect ramconsole data
+    copy /proc/last_kmsg /data/dontpanic/last_kmsg
+    chown root system /data/dontpanic/last_kmsg
+    chmod 0640 /data/dontpanic/last_kmsg
+
     # Same reason as /data above
     mount yaffs2 mtd@cache /cache nosuid nodev
     chown system cache /cache
-    chmod 0770 /cache
+    chmod 0771 /cache
 
     # This may have been created by the recovery system with odd permissions
     chown system system /cache/recovery
     chmod 0770 /cache/recovery
+
+    #change permissions on vmallocinfo so we can grab it from bugreports
+    chown root log /proc/vmallocinfo
+    chmod 0440 /proc/vmallocinfo
 
 # create basic filesystem structure
     mkdir /data/misc 01771 system misc
@@ -146,7 +179,7 @@ on boot
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
     write /sys/module/lowmemorykiller/parameters/minfree 1536,2048,4096,5120,5632,6144
-
+    
     # Set init its forked children's oom_adj.
     write /proc/1/oom_adj -16
 
@@ -347,6 +380,7 @@ service tether_off /system/bin/logwrapper /system/bin/sh /system/bin/usb-tether 
     oneshot
 
 # Memory Control
+# Service memctl enables compcache or swap or both using system/bin/memctl script 
 service memctl_0 /system/bin/logwrapper /system/bin/sh /system/bin/memctl disabled
     disabled
     oneshot
@@ -374,7 +408,6 @@ on property:persist.service.memctl_state=2
  
 on property:persist.service.memctl_state=3
     start memctl_3
-
 
 # CompCache for Other ROMs
 service compcache_on /system/bin/logwrapper /system/bin/sh /system/bin/compcache start

@@ -3,7 +3,7 @@
 #
 
 config WGKERNEL
-	bool "Welcome to WG-Kernel v4-CFS"
+	bool "Welcome to WG-Kernel v4-BETA"
 	default y
 
 if WGKERNEL

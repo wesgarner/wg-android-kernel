@@ -61,7 +61,6 @@ loglevel 3
     # 5.0 %
     write /dev/cpuctl/bg_non_interactive/cpu.shares 52
 
-
 # mount mtd partitions
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
     mount yaffs2 mtd@system /system
@@ -381,6 +380,16 @@ service reboot /system/bin/shutdown -r
 
 service poweroff /system/bin/shutdown
     disabled
+
+# Automatic Renice
+# Note: Turning off this service is controlled inside the script itself which 
+#       reads the persist.service.auto.renice variable at each instance
+service arenice /system/bin/arenice
+    disabled
+    oneshot
+
+on property:persist.service.auto.renice=1
+    start arenice
 
 # USB internet sharing
 service dnsmasq /system/bin/logwrapper /system/bin/dnsmasq -d

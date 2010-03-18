@@ -70,6 +70,5 @@ series
 cscope.*
 ncscope.*
 
-#*.orig
 *~
 \#*#

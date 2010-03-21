@@ -92,11 +92,6 @@ config HTC_35MM_JACK
 	help
 	 Provides support for 3.5mm headset jack devices, like wired headsets.
 
-config TROUT_BATTCHG
-	depends on MACH_TROUT && POWER_SUPPLY
-	default y
-	bool "Trout battery / charger driver"
-
 config HTC_PWRSINK
 	depends on MSM_SMD
 	default y

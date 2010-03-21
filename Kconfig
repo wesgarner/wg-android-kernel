@@ -19,10 +19,9 @@ config WLAN_TIDRV
 	default y
 	depends on m
 
-#config MSM_RHACK
-#	bool "10mb RAM Hack for Trout/Sapphire 32B Devices"
-#	default y
-#	depends on MACH_TROUT && MACH_SAPPHIRE
+config MSM_RHACK
+	bool "RAM Hack for Trout/Sapphire 32B Devices"
+	default n
 
 endmenu
 endif # if WGKERNEL

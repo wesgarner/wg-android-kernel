@@ -190,6 +190,7 @@ struct usb_info
 
 	struct clk *clk;
 	struct clk *pclk;
+	struct clk *otgclk;
 };
 
 struct usb_device_descriptor desc_device = {
@@ -842,20 +843,43 @@ static void handle_endpoint(struct usb_info *ui, unsigned bit)
 	spin_unlock_irqrestore(&ui->lock, flags);
 }
 
+#define FLUSH_WAIT_US	5
+#define FLUSH_TIMEOUT	(2 * (USEC_PER_SEC / FLUSH_WAIT_US))
 static void flush_endpoint_hw(struct usb_info *ui, unsigned bits)
-{	
+{
+	uint32_t unflushed = 0;
+	uint32_t stat = 0;
+	int cnt = 0;
+
 	/* flush endpoint, canceling transactions
 	** - this can take a "large amount of time" (per databook)
 	** - the flush can fail in some cases, thus we check STAT 
 	**   and repeat if we're still operating
 	**   (does the fact that this doesn't use the tripwire matter?!)
 	*/
-	do {
+	while (cnt < FLUSH_TIMEOUT) {
 		writel(bits, USB_ENDPTFLUSH);
-		while(readl(USB_ENDPTFLUSH) & bits) {
-			udelay(100);
+		while (((unflushed = readl(USB_ENDPTFLUSH)) & bits) &&
+		       cnt < FLUSH_TIMEOUT) {
+			cnt++;
+			udelay(FLUSH_WAIT_US);
 		}
-	} while (readl(USB_ENDPTSTAT) & bits);
+
+		stat = readl(USB_ENDPTSTAT);
+		if (cnt >= FLUSH_TIMEOUT)
+			goto err;
+		if (!(stat & bits))
+			goto done;
+		cnt++;
+		udelay(FLUSH_WAIT_US);
+	}
+
+err:
+	pr_warning("%s: Could not complete flush! NOT GOOD! "
+		   "stat: %x unflushed: %x bits: %x\n", __func__,
+		   stat, unflushed, bits);
+done:
+	return;
 }
 
 static void flush_endpoint_sw(struct usb_endpoint *ept)
@@ -1076,6 +1100,20 @@ static void usb_bind_driver(struct usb_info *ui, struct usb_function_info *fi)
 	func->bind(elist, func->context);
 }
 
+static void usb_pullup(struct usb_info *ui, bool enable)
+{
+	u32 cmd = (8 << 16);
+
+	/* disable/enable D+ pullup */
+	if (enable) {
+		pr_info("msm_hsusb: enable pullup\n");
+		writel(cmd | 1, USB_USBCMD);
+	} else {
+		pr_info("msm_hsusb: disable pullup\n");
+		writel(cmd, USB_USBCMD);
+	}
+}
+
 static void usb_reset(struct usb_info *ui)
 {
 	unsigned long flags;
@@ -1134,7 +1172,7 @@ static void usb_reset(struct usb_info *ui)
 	writel(STS_URI | STS_SLI | STS_UI | STS_PCI, USB_USBINTR);
 
 	/* go to RUN mode (D+ pullup enable) */
-	writel(0x00080001, USB_USBCMD);
+	usb_pullup(ui, true);
 
 	spin_lock_irqsave(&ui->lock, flags);
 	ui->running = 1;
@@ -1288,6 +1326,8 @@ static int usb_free(struct usb_info *ui, int ret)
 		clk_put(ui->clk);
 	if (ui->pclk)
 		clk_put(ui->pclk);
+	if (ui->otgclk)
+		clk_put(ui->otgclk);
 	kfree(ui);
 	return ret;
 }
@@ -1328,6 +1368,8 @@ static void usb_do_work(struct work_struct *w)
 				pr_info("hsusb: IDLE -> ONLINE\n");
 				clk_enable(ui->clk);
 				clk_enable(ui->pclk);
+				if (ui->otgclk)
+					clk_enable(ui->otgclk);
 				usb_reset(ui);
 
 				ui->state = USB_STATE_ONLINE;
@@ -1355,11 +1397,15 @@ static void usb_do_work(struct work_struct *w)
 				flush_all_endpoints(ui);
 				set_configuration(ui);
 
+				usb_pullup(ui, false);
+
 				/* power down phy, clock down usb */
 				spin_lock_irqsave(&ui->lock, iflags);
 				usb_suspend_phy(ui);
 				clk_disable(ui->pclk);
 				clk_disable(ui->clk);
+				if (ui->otgclk)
+					clk_disable(ui->otgclk);
 				spin_unlock_irqrestore(&ui->lock, iflags);
 
 				ui->state = USB_STATE_OFFLINE;
@@ -1381,6 +1427,8 @@ static void usb_do_work(struct work_struct *w)
 				pr_info("hsusb: OFFLINE -> ONLINE\n");
 				clk_enable(ui->clk);
 				clk_enable(ui->pclk);
+				if (ui->otgclk)
+					clk_enable(ui->otgclk);
 				usb_reset(ui);
 
 				if (ui->usb_connected)
@@ -1422,13 +1470,9 @@ void usb_function_reenumerate(void)
 	struct usb_info *ui = the_usb_info;
 
 	/* disable and re-enable the D+ pullup */
-	printk("hsusb: disable pullup\n");
-	writel(0x00080000, USB_USBCMD);
-
+	usb_pullup(ui, false);
 	msleep(10);
-
-	printk("hsusb: enable pullup\n");
-	writel(0x00080001, USB_USBCMD);
+	usb_pullup(ui, true);
 }
 
 #if defined(CONFIG_DEBUG_FS)
@@ -1613,6 +1657,22 @@ static int usb_probe(struct platform_device *pdev)
 	ui->pclk = clk_get(&pdev->dev, "usb_hs_pclk");
 	if (IS_ERR(ui->pclk))
 		return usb_free(ui, PTR_ERR(ui->pclk));
+
+	ui->otgclk = clk_get(&pdev->dev, "usb_otg_clk");
+	if (IS_ERR(ui->otgclk))
+		ui->otgclk = NULL;
+
+	/* clear interrupts before requesting irq */
+	clk_enable(ui->clk);
+	clk_enable(ui->pclk);
+	if (ui->otgclk)
+		clk_enable(ui->otgclk);
+	writel(0, USB_USBINTR);
+	writel(0, USB_OTGSC);
+	if (ui->otgclk)
+		clk_disable(ui->otgclk);
+	clk_disable(ui->pclk);
+	clk_disable(ui->clk);
 
 	ret = request_irq(irq, usb_interrupt, 0, pdev->name, ui);
 	if (ret)

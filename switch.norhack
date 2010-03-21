@@ -1,6 +1,0 @@
-#!/bin/bash
-
-echo "Switching to NON RAM HACK version"
-
-cp -a arch/arm/mach-msm/board-sapphire.h.orig arch/arm/mach-msm/board-sapphire.h
-cp -a arch/arm/mach-msm/board-trout.h.orig arch/arm/mach-msm/board-trout.h

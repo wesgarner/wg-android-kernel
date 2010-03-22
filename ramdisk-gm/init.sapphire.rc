@@ -32,6 +32,9 @@ on boot
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660                /sys/class/rfkill/rfkill0/state
 
+on property:init.svc.wpa_supplicant=stopped
+    stop dhcpcd
+
 # compass/accelerometer daemon
 service akmd /system/bin/akmd
     user compass

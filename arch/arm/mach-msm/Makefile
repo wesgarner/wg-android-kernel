@@ -33,9 +33,6 @@ obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire-mmc.o board-sapphire-wifi.o
 obj-$(CONFIG_MACH_SAPPHIRE) += board-sapphire-rfkill.o msm_vibrator.o
 obj-$(CONFIG_MACH_SAPPHIRE) += htc_akm_cal.o htc_wifi_nvs.o htc_acoustic.o
 obj-$(CONFIG_MACH_SAPPHIRE) += htc_battery.o devices_htc.o
-obj-$(CONFIG_MACH_SAPPHIRE) += devices_htc.o
-
-obj-$(CONFIG_HTC_PWRSPLY) += htc_power_supply.o
 
 obj-$(CONFIG_HTC_PWRSINK) += htc_pwrsink.o
 obj-$(CONFIG_HTC_HEADSET) += htc_headset.o

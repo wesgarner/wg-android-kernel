@@ -57,9 +57,10 @@ rm -f $BASE/package-tree/*.zip > /dev/null 2>&1
 
 echo "Copying files..."
 mv -f $BASE/output/boot.img $BASE/package-tree/ > /dev/null
-if [ -s $BASE/output/ramzswap.ko ]; then
-	mv -f $BASE/output/ramzswap.ko $BASE/package-tree/system/lib/compcache/ > /dev/null
-fi
+## SuperD 1.10 ==> all modules go in lib/modules
+#if [ -s $BASE/output/ramzswap.ko ]; then
+#	mv -f $BASE/output/ramzswap.ko $BASE/package-tree/system/lib/compcache/ > /dev/null
+#fi
 mv $BASE/output/*.ko $BASE/package-tree/system/lib/modules/ > /dev/null
 
 echo "Making zip file..."

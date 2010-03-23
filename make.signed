@@ -45,13 +45,13 @@ fi
 if [ ! -d $BASE/package-tree/system/lib/modules ]; then
 	mkdir -p $BASE/package-tree/system/lib/modules
 fi
-if [ ! -d $BASE/package-tree/system/lib/compcache ]; then
-	mkdir -p $BASE/package-tree/system/lib/compcache
-fi
+#if [ ! -d $BASE/package-tree/system/lib/compcache ]; then
+#	mkdir -p $BASE/package-tree/system/lib/compcache
+#fi
 
 # Clean package-tree dir
 rm -f $BASE/package-tree/boot.img > /dev/null 2>&1
-rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
+#rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
 rm -f $BASE/package-tree/system/lib/modules/*.ko > /dev/null 2>&1
 rm -f $BASE/package-tree/*.zip > /dev/null 2>&1
 

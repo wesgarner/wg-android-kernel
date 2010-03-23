@@ -114,9 +114,9 @@ loglevel 3
     chmod 0770 /cache/recovery
 
 # create basic filesystem structure
-     mkdir /data/misc 01771 system misc
-    mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
-    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/hcid 0770 bluetooth bluetooth
+    mkdir /data/misc/keystore 0770 keystore keystore
     mkdir /data/misc/vpn 0770 system system
     mkdir /data/misc/vpn/profiles 0770 system system
     # give system access to wpa_supplicant.conf for backup and restore
@@ -330,7 +330,7 @@ service dbus /system/bin/dbus-daemon --system --nofork
     user bluetooth
     group bluetooth net_bt_admin
  
-service bluetoothd /system/bin/bluetoothd -n
+service hcid /system/bin/hcid -s -n -f /etc/bluez/hcid.conf
     socket bluetooth stream 660 bluetooth bluetooth
     socket dbus_bluetooth stream 660 bluetooth bluetooth
     # init.rc does not yet support applying capabilities, so run as root and

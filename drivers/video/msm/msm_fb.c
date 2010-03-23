@@ -628,7 +628,11 @@ static void setup_fb_info(struct msmfb_info *msmfb)
 	fb_info->var.width = msmfb->panel->fb_data->width;
 	fb_info->var.height = msmfb->panel->fb_data->height;
 	fb_info->var.xres_virtual = msmfb->xres;
+#ifdef CONFIG_FB_MSM_DOUBLE_BUFFER
 	fb_info->var.yres_virtual = msmfb->yres * 2;
+#else
+	fb_info->var.yres_virtual = msmfb->yres;
+#endif
 	fb_info->var.bits_per_pixel = BITS_PER_PIXEL;
 	fb_info->var.accel_flags = 0;
 
@@ -697,6 +701,27 @@ static int setup_fbmem(struct msmfb_info *msmfb, struct platform_device *pdev)
 	fb->screen_base = fbram;
 	return 0;
 }
+
+#ifdef CONFIG_FB_MSM_REFRESH
+static int msmfb_refresh_thread(void *v)
+{
+       struct fb_info *fb;
+      
+       daemonize("msmfb_refreshd");
+       allow_signal(SIGKILL);
+      
+       while (1) {
+               msleep(50);
+              
+               if (num_registered_fb > 0) {
+                       fb = registered_fb[0];
+                       msmfb_update(fb, 0, 0, fb->var.xres, fb->var.yres);
+               }
+       }
+      
+       return 0;
+}
+#endif
 
 static int msmfb_probe(struct platform_device *pdev)
 {
@@ -775,6 +800,10 @@ static int msmfb_probe(struct platform_device *pdev)
 	if (ret)
 		goto error_register_framebuffer;
 
+#ifdef CONFIG_FB_MSM_REFRESH
+       /* Start the refresh thread */
+       kernel_thread(msmfb_refresh_thread, NULL, CLONE_KERNEL);
+#endif
 	msmfb->sleeping = WAKING;
 
 #ifdef CONFIG_FB_MSM_LOGO

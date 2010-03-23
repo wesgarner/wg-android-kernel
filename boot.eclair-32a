@@ -1,0 +1,11 @@
+if [ ! -d out ]; then
+	mkdir out;
+fi;
+mkbootfs ./ramdisk.eclair | gzip > out/ramdisk.gz
+cp -a arch/arm/boot/zImage out/
+mkbootimg --base 0x19200000 --kernel out/zImage --ramdisk out/ramdisk.gz -o out/boot.img
+
+cp -a */*.ko out/
+cp -a */*/*.ko out/
+cp -a */*/*/*.ko out/
+cp -a */*/*/*/*.ko out/

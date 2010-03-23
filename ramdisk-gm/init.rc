@@ -372,7 +372,7 @@ service installd /system/bin/installd
 service racoon /system/bin/racoon
     socket racoon stream 600 system system
     # racoon will setuid to vpn after getting necessary resources.
-    group net_admin
+    group net_admin keystore
     disabled
     oneshot
  
@@ -383,7 +383,7 @@ service mtpd /system/bin/mtpd
     disabled
     oneshot
  
-service keystore /system/bin/keystore /data/misc/keystore
+service keystore /system/bin/keystore
     user keystore
     group keystore
     socket keystore stream 666

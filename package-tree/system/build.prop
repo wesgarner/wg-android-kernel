@@ -23,7 +23,7 @@ keyguard.no_require_sim=true
 ro.config.sync=yes
 net.bt.name=Android
 dalvik.vm.stack-trace-file=/data/anr/traces.txt
-ro.qualcomm.proprietary_obex=true
+#ro.qualcomm.proprietary_obex=true
 
 # Enable precise GC for Dalvik - uses more memory
 #dalvik.vm.dexopt-flags=m=y
@@ -31,4 +31,4 @@ ro.qualcomm.proprietary_obex=true
 # Google's checkin service.  I don't like it, but it's required for the SetupWizard -cm
 #ro.config.nocheckin=1
 
-ro.modversion=SuperD 1.10 32A port by merlos (WG kernel)
+ro.modversion=SuperD 1.10 32A port by merlos v1.1 

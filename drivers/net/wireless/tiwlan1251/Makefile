@@ -29,9 +29,9 @@ else
 ifeq ($(KERNEL_DIR),)
     KERNEL_DIR = ../../../../
 endif
-    include common.inc
-    include drv_sources.inc
-    include os_sources.inc
+    include $(M)/common.inc
+    include $(M)/drv_sources.inc
+    include $(M)/os_sources.inc
 endif
 
 #

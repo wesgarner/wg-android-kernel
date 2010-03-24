@@ -45,21 +45,22 @@ fi
 if [ ! -d $BASE/package-tree/system/lib/modules ]; then
 	mkdir -p $BASE/package-tree/system/lib/modules
 fi
-if [ ! -d $BASE/package-tree/system/lib/compcache ]; then
-	mkdir -p $BASE/package-tree/system/lib/compcache
-fi
+#if [ ! -d $BASE/package-tree/system/lib/compcache ]; then
+#	mkdir -p $BASE/package-tree/system/lib/compcache
+#fi
 
 # Clean package-tree dir
 rm -f $BASE/package-tree/boot.img > /dev/null 2>&1
-rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
+#rm -f $BASE/package-tree/system/lib/compcache/*.ko > /dev/null 2>&1
 rm -f $BASE/package-tree/system/lib/modules/*.ko > /dev/null 2>&1
 rm -f $BASE/package-tree/*.zip > /dev/null 2>&1
 
 echo "Copying files..."
 mv -f $BASE/output/boot.img $BASE/package-tree/ > /dev/null
-if [ -s $BASE/output/ramzswap.ko ]; then
-	mv -f $BASE/output/ramzswap.ko $BASE/package-tree/system/lib/compcache/ > /dev/null
-fi
+## SuperD 1.10 ==> all modules go in lib/modules
+#if [ -s $BASE/output/ramzswap.ko ]; then
+#	mv -f $BASE/output/ramzswap.ko $BASE/package-tree/system/lib/compcache/ > /dev/null
+#fi
 mv $BASE/output/*.ko $BASE/package-tree/system/lib/modules/ > /dev/null
 
 echo "Making zip file..."

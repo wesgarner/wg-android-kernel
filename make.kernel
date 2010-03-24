@@ -94,6 +94,11 @@ if [ ! -d output ]; then
 fi
 
 mv -f $KERNEL_DIR/boot.img $KERNEL_DIR/output/ > /dev/null
+
+## Install modules in the linux kernel way
+#make modules_install
+
+## For 32A port , just copy modules in lib/modules/ dir
 find $KERNEL_DIR -name *.ko -exec mv -f '{}' $KERNEL_DIR/output/ \; > /dev/null
 
 echo "================================="

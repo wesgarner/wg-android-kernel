@@ -213,6 +213,7 @@ struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type, bdaddr_t *dst)
 	conn->type  = type;
 	conn->mode  = HCI_CM_ACTIVE;
 	conn->state = BT_OPEN;
+	conn->auth_type = HCI_AT_GENERAL_BONDING;
 
 	conn->power_save = 1;
 
@@ -371,6 +372,9 @@ struct hci_conn *hci_connect(struct hci_dev *hdev, int type, bdaddr_t *dst, __u8
 
 	if (acl->state == BT_CONNECTED &&
 			(sco->state == BT_OPEN || sco->state == BT_CLOSED)) {
+		acl->power_save = 1;
+		hci_conn_enter_active_mode(acl);
+
 		if (lmp_esco_capable(hdev))
 			hci_setup_sync(sco, acl->handle);
 		else
@@ -424,12 +428,9 @@ int hci_conn_security(struct hci_conn *conn, __u8 sec_level, __u8 auth_type)
 	if (sec_level == BT_SECURITY_SDP)
 		return 1;
 
-	if (sec_level == BT_SECURITY_LOW) {
-		if (conn->ssp_mode > 0 && conn->hdev->ssp_mode > 0)
-			return hci_conn_auth(conn, sec_level, auth_type);
-		else
-			return 1;
-	}
+	if (sec_level == BT_SECURITY_LOW &&
+				(!conn->ssp_mode || !conn->hdev->ssp_mode))
+		return 1;
 
 	if (conn->link_mode & HCI_LM_ENCRYPT)
 		return hci_conn_auth(conn, sec_level, auth_type);

@@ -36,6 +36,9 @@
 #include <linux/proc_fs.h>
 #include <linux/mutex.h>
 #include <linux/workqueue.h>
+#include <linux/preempt.h>
+
+extern void ram_console_enable_console(int);
 
 struct panic_header {
 	u32 magic;
@@ -62,6 +65,72 @@ struct apanic_data {
 static struct apanic_data drv_ctx;
 static struct work_struct proc_removal_work;
 static DEFINE_MUTEX(drv_mutex);
+
+static unsigned int *apanic_bbt;
+static unsigned int apanic_erase_blocks;
+static unsigned int apanic_good_blocks;
+
+static void set_bb(unsigned int block, unsigned int *bbt)
+{
+	unsigned int flag = 1;
+
+	BUG_ON(block >= apanic_erase_blocks);
+
+	flag = flag << (block%32);
+	apanic_bbt[block/32] |= flag;
+	apanic_good_blocks--;
+}
+
+static unsigned int get_bb(unsigned int block, unsigned int *bbt)
+{
+	unsigned int flag;
+
+	BUG_ON(block >= apanic_erase_blocks);
+
+	flag = 1 << (block%32);
+	return apanic_bbt[block/32] & flag;
+}
+
+static void alloc_bbt(struct mtd_info *mtd, unsigned int *bbt)
+{
+	int bbt_size;
+	apanic_erase_blocks = (mtd->size)>>(mtd->erasesize_shift);
+	bbt_size = (apanic_erase_blocks+32)/32;
+
+	apanic_bbt = kmalloc(bbt_size*4, GFP_KERNEL);
+	memset(apanic_bbt, 0, bbt_size*4);
+	apanic_good_blocks = apanic_erase_blocks;
+}
+static void scan_bbt(struct mtd_info *mtd, unsigned int *bbt)
+{
+	int i;
+
+	for (i = 0; i < apanic_erase_blocks; i++) {
+		if (mtd->block_isbad(mtd, i*mtd->erasesize))
+			set_bb(i, apanic_bbt);
+	}
+}
+
+#define APANIC_INVALID_OFFSET 0xFFFFFFFF
+
+static unsigned int phy_offset(struct mtd_info *mtd, unsigned int offset)
+{
+	unsigned int logic_block = offset>>(mtd->erasesize_shift);
+	unsigned int phy_block;
+	unsigned good_block = 0;
+
+	for (phy_block = 0; phy_block < apanic_erase_blocks; phy_block++) {
+		if (!get_bb(phy_block, apanic_bbt))
+			good_block++;
+		if (good_block == (logic_block + 1))
+			break;
+	}
+
+	if (good_block != (logic_block + 1))
+		return APANIC_INVALID_OFFSET;
+
+	return offset + ((phy_block-logic_block)<<mtd->erasesize_shift);
+}
 
 static void apanic_erase_callback(struct erase_info *done)
 {
@@ -112,10 +181,17 @@ static int apanic_proc_read(char *buffer, char **start, off_t offset,
 	page_no = (file_offset + offset) / ctx->mtd->writesize;
 	page_offset = (file_offset + offset) % ctx->mtd->writesize;
 
+
+	if (phy_offset(ctx->mtd, (page_no * ctx->mtd->writesize))
+		== APANIC_INVALID_OFFSET) {
+		pr_err("apanic: reading an invalid address\n");
+		mutex_unlock(&drv_mutex);
+		return -EINVAL;
+	}
 	rc = ctx->mtd->read(ctx->mtd,
-			    (page_no * ctx->mtd->writesize),
-			    ctx->mtd->writesize,
-			    &len, ctx->bounce);
+		phy_offset(ctx->mtd, (page_no * ctx->mtd->writesize)),
+		ctx->mtd->writesize,
+		&len, ctx->bounce);
 
 	if (page_offset)
 		count -= page_offset;
@@ -148,14 +224,7 @@ static void mtd_panic_erase(void)
 		set_current_state(TASK_INTERRUPTIBLE);
 		add_wait_queue(&wait_q, &wait);
 
-		rc = ctx->mtd->block_isbad(ctx->mtd, erase.addr);
-		if (rc < 0) {
-			printk(KERN_ERR
-			       "apanic: Bad block check "
-			       "failed (%d)\n", rc);
-			goto out;
-		}
-		if (rc) {
+		if (get_bb(erase.addr>>ctx->mtd->erasesize_shift, apanic_bbt)) {
 			printk(KERN_WARNING
 			       "apanic: Skipping erase of bad "
 			       "block @%llx\n", erase.addr);
@@ -182,6 +251,8 @@ static void mtd_panic_erase(void)
 				printk(KERN_INFO
 				       "apanic: Marked a bad block"
 				       " @%llx\n", erase.addr);
+				set_bb(erase.addr>>ctx->mtd->erasesize_shift,
+					apanic_bbt);
 				continue;
 			}
 			goto out;
@@ -226,18 +297,23 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 	struct panic_header *hdr = ctx->bounce;
 	size_t len;
 	int rc;
+	int    proc_entry_created = 0;
 
 	if (strcmp(mtd->name, CONFIG_APANIC_PLABEL))
 		return;
 
 	ctx->mtd = mtd;
 
-	if (mtd->block_isbad(mtd, 0)) {
-		printk(KERN_ERR "apanic: Offset 0 bad block. Boourns!\n");
+	alloc_bbt(mtd, apanic_bbt);
+	scan_bbt(mtd, apanic_bbt);
+
+	if (apanic_good_blocks == 0) {
+		printk(KERN_ERR "apanic: no any good blocks?!\n");
 		goto out_err;
 	}
 
-	rc = mtd->read(mtd, 0, mtd->writesize, &len, ctx->bounce);
+	rc = mtd->read(mtd, phy_offset(mtd, 0), mtd->writesize,
+			&len, ctx->bounce);
 	if (rc && rc == -EBADMSG) {
 		printk(KERN_WARNING
 		       "apanic: Bad ECC on block 0 (ignored)\n");
@@ -283,6 +359,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 			ctx->apanic_console->write_proc = apanic_proc_write;
 			ctx->apanic_console->size = hdr->console_length;
 			ctx->apanic_console->data = (void *) 1;
+			proc_entry_created = 1;
 		}
 	}
 
@@ -297,8 +374,12 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 			ctx->apanic_threads->write_proc = apanic_proc_write;
 			ctx->apanic_threads->size = hdr->threads_length;
 			ctx->apanic_threads->data = (void *) 2;
+			proc_entry_created = 1;
 		}
 	}
+
+	if (!proc_entry_created)
+		mtd_panic_erase();
 
 	return;
 out_err:
@@ -326,13 +407,19 @@ static int apanic_writeflashpage(struct mtd_info *mtd, loff_t to,
 {
 	int rc;
 	size_t wlen;
-	int panic = in_interrupt();
+	int panic = in_interrupt() | in_atomic();
 
 	if (panic && !mtd->panic_write) {
 		printk(KERN_EMERG "%s: No panic_write available\n", __func__);
 		return 0;
 	} else if (!panic && !mtd->write) {
 		printk(KERN_EMERG "%s: No write available\n", __func__);
+		return 0;
+	}
+
+	to = phy_offset(mtd, to);
+	if (to == APANIC_INVALID_OFFSET) {
+		printk(KERN_EMERG "apanic: write to invalid address\n");
 		return 0;
 	}
 
@@ -381,32 +468,12 @@ static int apanic_write_console(struct mtd_info *mtd, unsigned int off)
 			break;
 		if (rc != mtd->writesize)
 			memset(ctx->bounce + rc, 0, mtd->writesize - rc);
-check_badblock:
-		rc = mtd->block_isbad(mtd, off);
-		if (rc < 0) {
-			printk(KERN_ERR
-			       "apanic: Bad block check "
-			       "failed (%d)\n", rc);
-		}
-		if (rc) {
-			printk(KERN_WARNING
-			       "apanic: Skipping over bad "
-			       "block @%x\n", off);
-			off += mtd->erasesize;
-			printk("chk %u %llu\n", off, mtd->size);
-			if (off >= mtd->size) {
-				printk(KERN_EMERG
-				       "apanic: Too many bad blocks!\n");
-				       return -EIO;
-			}
-			goto check_badblock;
-		}
 
 		rc2 = apanic_writeflashpage(mtd, off, ctx->bounce);
 		if (rc2 <= 0) {
 			printk(KERN_EMERG
 			       "apanic: Flash write failed (%d)\n", rc2);
-			return rc2;
+			return idx;
 		}
 		if (!last_chunk)
 			idx += rc2;
@@ -431,6 +498,11 @@ static int apanic(struct notifier_block *this, unsigned long event,
 	if (in_panic)
 		return NOTIFY_DONE;
 	in_panic = 1;
+#ifdef CONFIG_PREEMPT
+	/* Ensure that cond_resched() won't try to preempt anybody */
+	add_preempt_count(PREEMPT_ACTIVE);
+#endif
+	touch_softlockup_watchdog();
 
 	if (!ctx->mtd)
 		goto out;
@@ -458,6 +530,8 @@ static int apanic(struct notifier_block *this, unsigned long event,
 			       ctx->mtd->writesize);
 	if (!threads_offset)
 		threads_offset = ctx->mtd->writesize;
+
+	ram_console_enable_console(0);
 
 	log_buf_clear();
 	show_state_filter(0);
@@ -491,6 +565,9 @@ static int apanic(struct notifier_block *this, unsigned long event,
 	printk(KERN_EMERG "apanic: Panic dump sucessfully written to flash\n");
 
  out:
+#ifdef CONFIG_PREEMPT
+	sub_preempt_count(PREEMPT_ACTIVE);
+#endif
 	in_panic = 0;
 	return NOTIFY_DONE;
 }
@@ -513,7 +590,7 @@ static int panic_dbg_set(void *data, u64 val)
 
 DEFINE_SIMPLE_ATTRIBUTE(panic_dbg_fops, panic_dbg_get, panic_dbg_set, "%llu\n");
 
-void __init apanic_init(void)
+int __init apanic_init(void)
 {
 	register_mtd_user(&mtd_panic_notifier);
 	atomic_notifier_chain_register(&panic_notifier_list, &panic_blk);
@@ -523,6 +600,7 @@ void __init apanic_init(void)
 	INIT_WORK(&proc_removal_work, apanic_remove_proc_work);
 	printk(KERN_INFO "Android kernel panic handler initialized (bind=%s)\n",
 	       CONFIG_APANIC_PLABEL);
+	return 0;
 }
 
 module_init(apanic_init);

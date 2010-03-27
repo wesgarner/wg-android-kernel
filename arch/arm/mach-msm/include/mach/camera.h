@@ -61,8 +61,10 @@ struct msm_vfe_resp {
 
 struct msm_vfe_callback {
 	void (*vfe_resp)(struct msm_vfe_resp *,
-		enum msm_queue, void *syncdata);
-	void* (*vfe_alloc)(int, void *syncdata);
+		enum msm_queue, void *syncdata,
+		gfp_t gfp);
+	void* (*vfe_alloc)(int, void *syncdata, gfp_t gfp);
+	void (*vfe_free)(void *ptr);
 };
 
 struct msm_camvfe_fn {
@@ -81,9 +83,12 @@ struct msm_sensor_ctrl {
 };
 
 struct msm_sync {
-	/* These two queues are accessed from a process context only. */
-	struct hlist_head frame; /* most-frequently accessed */
-	struct hlist_head stats;
+	/* These two queues are accessed from a process context only.  They contain
+	 * pmem descriptors for the preview frames and the stats coming from the
+	 * camera sensor.
+	 */
+	struct hlist_head pmem_frames;
+	struct hlist_head pmem_stats;
 
 	/* The message queue is used by the control thread to send commands
 	 * to the config thread, and also by the DSP to send messages to the
@@ -91,6 +96,8 @@ struct msm_sync {
 	 * both interrupt and process context.
 	 */
 	spinlock_t msg_event_q_lock;
+	int msg_event_q_max;
+	int msg_event_q_len;
 	struct list_head msg_event_q;
 	wait_queue_head_t msg_event_wait;
 
@@ -98,6 +105,8 @@ struct msm_sync {
 	 * in interrupt context, and by the frame thread.
 	 */
 	spinlock_t prev_frame_q_lock;
+	int prev_frame_q_max;
+	int prev_frame_q_len;
 	struct list_head prev_frame_q;
 	wait_queue_head_t prev_frame_wait;
 	int unblock_poll_frame;
@@ -117,8 +126,7 @@ struct msm_sync {
 	uint8_t opencnt;
 	void *cropinfo;
 	int  croplen;
-	unsigned pict_pp;
-	uint8_t pp_sync_flag;
+	uint32_t pict_pp;
 
 	const char *apps_id;
 
@@ -145,20 +153,26 @@ struct msm_control_device_queue {
 	wait_queue_head_t ctrl_status_wait;
 };
 
-struct msm_control_device {
-	struct msm_device *pmsm;
-
-	/* This queue used by the config thread to send responses back to the
-	 * control thread.  It is accessed only from a process context.
-	 */
-	struct msm_control_device_queue ctrl_q;
-};
-
 /* this structure is used in kernel */
 struct msm_queue_cmd {
 	struct list_head list;
 	enum msm_queue type;
 	void *command;
+	int on_heap;
+};
+
+struct msm_control_device {
+	struct msm_device *pmsm;
+
+	/* Used for MSM_CAM_IOCTL_CTRL_CMD_DONE responses */
+	uint8_t ctrl_data[50];
+	struct msm_ctrl_cmd ctrl;
+	struct msm_queue_cmd qcmd;
+
+	/* This queue used by the config thread to send responses back to the
+	 * control thread.  It is accessed only from a process context.
+	 */
+	struct msm_control_device_queue ctrl_q;
 };
 
 struct register_address_value_pair {
@@ -179,15 +193,6 @@ struct axidata {
 	uint32_t bufnum2;
 	struct msm_pmem_region *region;
 };
-
-#ifdef CONFIG_MSM_CAMERA_FLASH
-int msm_camera_flash_set_led_state(unsigned led_state);
-#else
-static inline int msm_camera_flash_set_led_state(unsigned led_state)
-{
-	return -ENOTSUPP;
-}
-#endif
 
 /* Below functions are added for V4L2 kernel APIs */
 struct msm_v4l2_driver {

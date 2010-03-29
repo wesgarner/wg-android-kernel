@@ -53,7 +53,11 @@
 #include <linux/mmc/sdio_ids.h>
 #include <linux/msm_audio.h>
 
-#include "board-trout.h"
+#ifdef CONFIG_MSM_RHACK
+#include "board-trout.h.rhack"
+#else
+#include "board-trout.h.orig"
+#endif
 
 #include "gpio_chip.h"
 

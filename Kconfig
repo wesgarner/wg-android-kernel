@@ -20,8 +20,9 @@ config WLAN_TIDRV
 	depends on m
 
 config MSM_RHACK
-	bool "RAM Hack for HTC Dream/Sapphire 32B Devices"
+	bool "RAM Hack for HTC Dream/Sapphire 32B Devices (can not be used in combination with 3D drivers)"
 	default n
+	depends on !MSM_HW3D
 
 endmenu
 endif # if WGKERNEL

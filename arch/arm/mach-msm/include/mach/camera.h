@@ -63,7 +63,6 @@ struct msm_vfe_callback {
 	void (*vfe_resp)(struct msm_vfe_resp *,
 		enum msm_queue, void *syncdata);
 	void* (*vfe_alloc)(int, void *syncdata);
-	void (*vfe_free)(void *ptr);
 };
 
 struct msm_camvfe_fn {

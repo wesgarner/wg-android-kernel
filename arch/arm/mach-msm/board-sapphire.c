@@ -54,12 +54,7 @@
 
 
 #include "gpio_chip.h"
-
-#ifdef CONFIG_MSM_RHACK
-#include "board-sapphire.h.rhack"
-#else
-#include "board-sapphire.h.orig"
-#endif
+#include "board-sapphire.h"
 
 #include <mach/board.h>
 #include <mach/board_htc.h>

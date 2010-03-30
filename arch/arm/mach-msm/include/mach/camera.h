@@ -61,9 +61,8 @@ struct msm_vfe_resp {
 
 struct msm_vfe_callback {
 	void (*vfe_resp)(struct msm_vfe_resp *,
-		enum msm_queue, void *syncdata,
-		gfp_t gfp);
-	void* (*vfe_alloc)(int, void *syncdata, gfp_t gfp);
+		enum msm_queue, void *syncdata);
+	void* (*vfe_alloc)(int, void *syncdata);
 	void (*vfe_free)(void *ptr);
 };
 

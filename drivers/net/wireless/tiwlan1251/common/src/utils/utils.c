@@ -1617,10 +1617,9 @@ BOOL utils_isJunkSSID(ssid_t *pSsid)
 
 	if (pSsid->len > 2)
 	{
-                unsigned char *ssidString = (unsigned char *)pSsid->ssidString;
-		if ((ssidString[0] < FIRST_VALID_CHAR) &&
-			(ssidString[1] < FIRST_VALID_CHAR) &&
-			(ssidString[2] < FIRST_VALID_CHAR))
+		if ((pSsid->ssidString[0] < FIRST_VALID_CHAR) &&
+			(pSsid->ssidString[1] < FIRST_VALID_CHAR) &&
+			(pSsid->ssidString[2] < FIRST_VALID_CHAR))
 		{
 			return TRUE;
 		}
@@ -2016,3 +2015,5 @@ void util_printProfile(void)
 
 
 #endif /* UTIL_DEBUG_PROFILE */
+
+

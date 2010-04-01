@@ -426,10 +426,6 @@ TI_STATUS roamingMngr_init(TI_HANDLE hRoamingMngr,
 {
     roamingMngr_t           *pRoamingMngr;
     TI_STATUS               status;
-#ifdef ENABLE_ROAMING_BY_DEFAULT
-    roamingMngrConfigParams_t InitRoamingParams;
-    paramInfo_t             param;
-#endif
 #ifdef TI_DBG
     UINT8                   index;
 #endif
@@ -524,7 +520,15 @@ TI_STATUS roamingMngr_init(TI_HANDLE hRoamingMngr,
 
     /* Init intrenal variables */
     pRoamingMngr->currentState = ROAMING_STATE_IDLE;
+#ifdef ENABLE_ROAMING_BY_DEFAULT
+    pRoamingMngr->roamingMngrConfig.enableDisable = ROAMING_ENABLED;
+    apConn_registerRoamMngrCallb(pRoamingMngr->hAPConnection,
+                                 roamingMngr_triggerRoamingCb,
+                                 roamingMngr_connStatusCb,
+                                 roamingMngr_updateNeighborApListCb);
+#else
     pRoamingMngr->roamingMngrConfig.enableDisable = ROAMING_DISABLED; 
+#endif
     pRoamingMngr->roamingTrigger = ROAMING_TRIGGER_NONE;
     pRoamingMngr->maskRoamingEvents= TRUE;
     pRoamingMngr->scanType = ROAMING_NO_SCAN;
@@ -560,36 +564,7 @@ TI_STATUS roamingMngr_init(TI_HANDLE hRoamingMngr,
                         ROAMING_MNGR_NUM_STATES, 
                         ROAMING_MNGR_NUM_EVENTS, 
                         roamingMngr_smEvent, pRoamingMngr->hOs);
-#ifdef ENABLE_ROAMING_BY_DEFAULT
-	if (status != OK)
-	{
-		return status;
-	}
 
-	param.paramType = ROAMING_MNGR_APPLICATION_CONFIGURATION;
-	param.content.applicationConfigBuffer.bufferSize = sizeof(roamingMngrConfigParams_t);
-	param.content.applicationConfigBuffer.buffer = (UINT8 *)&param;
-	InitRoamingParams.roamingMngrConfig.enableDisable =  ROAMING_ENABLED;
-
-	InitRoamingParams.roamingMngrConfig.lowPassFilterRoamingAttempt = 30;
-	InitRoamingParams.roamingMngrConfig.apQualityThreshold = -70;
-
-	InitRoamingParams.roamingMngrThresholdsConfig.dataRetryThreshold = 20; 
-	InitRoamingParams.roamingMngrThresholdsConfig.numExpectedTbttForBSSLoss = 10;
-	InitRoamingParams.roamingMngrThresholdsConfig.txRateThreshold = 2;
-	InitRoamingParams.roamingMngrThresholdsConfig.lowRssiThreshold = -80;
-	InitRoamingParams.roamingMngrThresholdsConfig.lowSnrThreshold = 0;
-	InitRoamingParams.roamingMngrThresholdsConfig.lowQualityForBackgroungScanCondition = -60;
-	InitRoamingParams.roamingMngrThresholdsConfig.normalQualityForBackgroungScanCondition = -50;
-	InitRoamingParams.roamingMngrThresholdsConfig.rssiFilterWeight = 10;
-	InitRoamingParams.roamingMngrThresholdsConfig.snrFilterWeight  = 10;
-
-	param.paramType = ROAMING_MNGR_APPLICATION_CONFIGURATION;
-	param.content.applicationConfigBuffer.bufferSize = sizeof(roamingMngrConfigParams_t);
-	param.content.applicationConfigBuffer.buffer = (UINT8 *)&InitRoamingParams;
-
-	roamingMngr_setParam (hRoamingMngr,&param);
-#endif
     return status;
 }
 
@@ -705,16 +680,7 @@ TI_STATUS roamingMngr_setParam(TI_HANDLE hRoamingMngr, paramInfo_t *pParam)
         WLAN_REPORT_INFORMATION(pRoamingMngr->hReport, ROAMING_MANAGER_MODULE_LOG, 
                               ("roamingMngr_setParam TRIGGER_EVENT=  %d \n", 
                               pParam->content.roamingTriggerType));
-
-		if ((apConn_roamingTrigger_e)pParam->content.roamingTriggerType == ROAMING_TRIGGER_AP_DISCONNECT)
-        {
-			/* DeAuth packet with status code of deauth/disassoc packet equal to  1 */
-			apConn_reportRoamingEventDisconnect(pRoamingMngr->hAPConnection ,1 ,TRUE);
-        }
-        else
-        {
-			apConn_reportRoamingEvent(pRoamingMngr->hAPConnection, (apConn_roamingTrigger_e)pParam->content.roamingTriggerType, NULL);
-        }
+        apConn_reportRoamingEvent(pRoamingMngr->hAPConnection, (apConn_roamingTrigger_e)pParam->content.roamingTriggerType, NULL);
         break;
     
     case ROAMING_MNGR_CONN_STATUS:
@@ -1320,7 +1286,7 @@ TI_STATUS roamingMngr_updateNewBssList(TI_HANDLE hRoamingMngr, bssList_t *bssLis
                           ("roamingMngr_updateNewBssList, No Pre-Auth is required\n")); 
         return OK;
     }
-    apConn_preAuthenticate(pRoamingMngr->hAPConnection, bssList, bssList->numOfEntries);
+    apConn_preAuthenticate(pRoamingMngr->hAPConnection, bssList);
 
     return OK;
 
@@ -1442,11 +1408,7 @@ static TI_STATUS roamingMngr_smRoamTrigger(TI_HANDLE hRoamingMngr)
     apConn_prepareToRoaming(pRoamingMngr->hAPConnection, pRoamingMngr->roamingTrigger);
 
     /* Get the current BSSIDs from ScanMngr */
-#if 0
     pRoamingMngr->pListOfAPs = scanMngr_getBSSList(pRoamingMngr->hScanMngr);
-#else
-    pRoamingMngr->pListOfAPs = NULL; /* force immediate scan */
-#endif
     if ((pRoamingMngr->pListOfAPs != NULL) && (pRoamingMngr->pListOfAPs->numOfEntries > 0))
     {   /* No need to SCAN, start SELECTING */
         roamingEvent = ROAMING_EVENT_SELECT;
@@ -1503,8 +1465,6 @@ static TI_STATUS roamingMngr_smInvokeScan(TI_HANDLE hRoamingMngr)
     {
         return NOK;
     }
-
-    scanMngrClearBSSListEntry(pRoamingMngr->hScanMngr);
 
     /* check which scan should be performed: Partial on list of channels, or full scan */
     if ((pRoamingMngr->scanType == ROAMING_PARTIAL_SCAN) ||
@@ -1872,11 +1832,12 @@ static TI_STATUS roamingMngr_smSuccHandover(TI_HANDLE hRoamingMngr)
         for the current AP */
     if (pRoamingMngr->staCapabilities.authMode==os802_11AuthModeWPA2)
     {   /* No Pre-Auth is required */
-		UINT8 dummy;
+        bssList_t           bssList;
 
         WLAN_REPORT_INFORMATION(pRoamingMngr->hReport, ROAMING_MANAGER_MODULE_LOG, 
                           ("roamingMngr_smStartIdle, Pre-Auth to cur AP\n")); 
-        apConn_preAuthenticate(pRoamingMngr->hAPConnection, (bssList_t *)&dummy, 0);
+        bssList.numOfEntries = 0;
+        apConn_preAuthenticate(pRoamingMngr->hAPConnection, &bssList);
     }
 
     return OK;
@@ -2064,10 +2025,12 @@ static TI_STATUS roamingMngr_smStartIdle(void *pData)
         for the current AP */
     if (pRoamingMngr->staCapabilities.authMode==os802_11AuthModeWPA2)
     {   /* No Pre-Auth is required */
-		UINT8 				dummy;
+        bssList_t           bssList;
+
         WLAN_REPORT_INFORMATION(pRoamingMngr->hReport, ROAMING_MANAGER_MODULE_LOG, 
                           ("roamingMngr_smStartIdle, Pre-Auth to cur AP\n")); 
-        apConn_preAuthenticate(pRoamingMngr->hAPConnection, (bssList_t *)&dummy, 0);
+        bssList.numOfEntries = 0;
+        apConn_preAuthenticate(pRoamingMngr->hAPConnection, &bssList);
     }
 
     return OK;

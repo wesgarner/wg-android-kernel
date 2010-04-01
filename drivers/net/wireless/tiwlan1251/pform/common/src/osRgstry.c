@@ -914,17 +914,19 @@ Return Value:
 -----------------------------------------------------------------------------*/
 void regConvertStringtoMACAddress(UINT8 *staMACAddressString,UINT8 *MacAddressArray)
 {
-    char *ptr;
-    UINT8 *tmpMacAddr;
-    UINT8 value = 0, value_l, value_h, add_value;
-    int i, str_len;
+
+char *ptr;
+UINT8 *tmpMacAddr;
+UINT8 value=0,value_l,value_h,add_value;
+int i;
+
 
     /* Take the pointer to the string MAC Address to convert it to the Array MAC Address */
-    ptr = (char *)staMACAddressString;
+    ptr=(char *)staMACAddressString;
     tmpMacAddr = MacAddressArray;
-    str_len = 3 * MAC_ADDR_LEN - 1;
+
 #if 0 
-    for(i=0; i<MAC_ADDR_LEN ; ptr++)
+    for(i=0 ; i<MAC_ADDR_LEN ; ptr++)
     {
         value_l = (*ptr-'0');
 
@@ -934,6 +936,8 @@ void regConvertStringtoMACAddress(UINT8 *staMACAddressString,UINT8 *MacAddressAr
         {
             value = value*10 + value_l;             
             /* PRINTF(DBG_REGISTRY,("value %d value_l %d  \n",value,value_l));*/
+
+
         }
         else
         {
@@ -942,18 +946,18 @@ void regConvertStringtoMACAddress(UINT8 *staMACAddressString,UINT8 *MacAddressAr
             value = 0;
             i++;
         }
+
     }
+
 #else
-    for(i=0;(i < MAC_ADDR_LEN);ptr++,str_len--)
+
+    for(i=0 ; i<MAC_ADDR_LEN ; ptr++)
     {
-        if (str_len > 0) {
-            /* The value can be or "0-9" or from "a-f" */
-            value_l = (*ptr - '0');
-            value_h = (*ptr - 'a');
-        }
-        else { /* last element */
-            value_l = value_h = 16;
-        }
+        
+        /* The value can be or "0-9" or from "a-f" */
+        value_l = (*ptr-'0');
+        value_h = (*ptr - 'a');
+
         /*PRINTF(DBG_REGISTRY,("value_l [%d] value_h [%d] *ptr %c value %d\n",value_l,value_h,*ptr,value));*/
 
         if( (value_l <= 9) || (value_h <= 15 ) )
@@ -970,16 +974,19 @@ void regConvertStringtoMACAddress(UINT8 *staMACAddressString,UINT8 *MacAddressAr
                 /* 'a' is in fact 10 decimal in hexa */
                 add_value = value_h + 10;
             }
-            value = value * 16 + add_value;
-            /*PRINTF(DBG_REGISTRY,("value %d add_value %d  \n",value,add_value));*/
+            value = value*16 + add_value;               
+        /*  PRINTF(DBG_REGISTRY,("value %d add_value %d  \n",value,add_value));*/
+
+
         }
         else
         {
             tmpMacAddr[i] = value;
-            /*PRINTF(DBG_REGISTRY,("tmpMacAddr[%d]  is %x\n",i,tmpMacAddr[i]));*/
+        /*  PRINTF(DBG_REGISTRY,("tmpMacAddr[%d]  is %x\n",i,tmpMacAddr[i]));*/
             value = 0;
             i++;
         }
+
     }
 #endif
 
@@ -4906,15 +4913,17 @@ Return Value:
 -----------------------------------------------------------------------------*/
 void regConvertStringtoBeaconIETable(UINT8 *staIpAddressString,UINT8 *IpAddressArray, UINT8 size)
 {
-    char *ptr;
-    UINT8 *tmpIpAddr;
-    UINT8 value = 0, value_l, value_h, add_value;
-    int i, str_len;
+
+char *ptr;
+UINT8 *tmpIpAddr;
+UINT8 value=0,value_l,value_h,add_value;
+int i;
+
 
     /* Take the pointer to the string MAC Address to convert it to the Array MAC Address */
-    ptr = (char *)staIpAddressString;
+    ptr=(char *)staIpAddressString;
     tmpIpAddr = IpAddressArray;
-    str_len = 3 * size - 1;
+
 #if 0 
     for(i=0 ; i<size ; ptr++)
     {
@@ -4926,6 +4935,8 @@ void regConvertStringtoBeaconIETable(UINT8 *staIpAddressString,UINT8 *IpAddressA
         {
             value = value*10 + value_l;             
             /* PRINTF(DBG_REGISTRY,("value %d value_l %d  \n",value,value_l));*/
+
+
         }
         else
         {
@@ -4936,17 +4947,16 @@ void regConvertStringtoBeaconIETable(UINT8 *staIpAddressString,UINT8 *IpAddressA
         }
 
     }
+
 #else
-    for(i=0;(i < size);ptr++,str_len--)
+
+    for(i=0 ; i<size ; ptr++)
     {
-        if (str_len > 0) {
-            /* The value can be or "0-9" or from "a-f" */
-            value_l = (*ptr - '0');
-            value_h = (*ptr - 'a');
-        }
-        else { /* last element */
-            value_l = value_h = 16;
-        }
+        
+        /* The value can be or "0-9" or from "a-f" */
+        value_l = (*ptr-'0');
+        value_h = (*ptr - 'a');
+
         /*PRINTF(DBG_REGISTRY,("value_l [%d] value_h [%d] *ptr %c value %d\n",value_l,value_h,*ptr,value));*/
 
         if( (value_l <= 9) || (value_h <= 15 ) )
@@ -4963,18 +4973,22 @@ void regConvertStringtoBeaconIETable(UINT8 *staIpAddressString,UINT8 *IpAddressA
                 /* 'a' is in fact 10 decimal in hexa */
                 add_value = value_h + 10;
             }
-            value = value * 16 + add_value;
-            /*PRINTF(DBG_REGISTRY,("value %d add_value %d  \n",value,add_value));*/
+            value = value*16 + add_value;               
+        /*  PRINTF(DBG_REGISTRY,("value %d add_value %d  \n",value,add_value));*/
+
+
         }
         else
         {
             tmpIpAddr[i] = value;
-            /*PRINTF(DBG_REGISTRY,("tmpMacAddr[%d]  is %x\n",i,tmpMacAddr[i]));*/
+        /*  PRINTF(DBG_REGISTRY,("tmpMacAddr[%d]  is %x\n",i,tmpMacAddr[i]));*/
             value = 0;
             i++;
         }
+
     }
 #endif
+
 }
 
 //TRS:WDK provide callback functions

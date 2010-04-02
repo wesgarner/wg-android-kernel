@@ -180,8 +180,7 @@ struct hci_conn {
 	struct timer_list disc_timer;
 	struct timer_list idle_timer;
 
-	struct work_struct work_add;
-	struct work_struct work_del;
+	struct work_struct work;
 
 	struct device	dev;
 

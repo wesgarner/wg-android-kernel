@@ -1,0 +1,14 @@
+#!/bin/bash
+rm WGKernelIncr.zip
+INSTALL_MOD_PATH=$PWD/system make -j4 CROSS_COMPILE=~/src/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi- ARCH=arm modules_install
+mkbootfs ./ramdisk.eclair | gzip > ramdisk.gz
+mkbootimg --kernel arch/arm/boot/zImage --ramdisk ramdisk.gz -o boot.img
+rmsymlinks
+zip WGKernelIncr.zip boot.img
+zip -r WGKernelIncr.zip META-INF
+zip -r WGKernelIncr.zip system
+signzip WGKernelIncr.zip
+mv WGKernelIncr.zip-signed WGKernelIncr.zip
+
+rm boot.img
+rm -r system

@@ -1,0 +1,17 @@
+assert compatible_with("0.2") == "true"
+
+show_progress 0.2 0
+
+copy_dir PACKAGE:system SYSTEM:
+
+show_progress 0.3 0
+
+set_perm_recursive 0 0 0755 0644 SYSTEM:lib
+
+show_progress 0.2 0
+
+format BOOT:
+write_raw_image PACKAGE:boot.img BOOT:
+
+show_progress 0.3 0
+

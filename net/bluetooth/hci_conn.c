@@ -213,7 +213,6 @@ struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type, bdaddr_t *dst)
 	conn->type  = type;
 	conn->mode  = HCI_CM_ACTIVE;
 	conn->state = BT_OPEN;
-	conn->auth_type = HCI_AT_GENERAL_BONDING;
 
 	conn->power_save = 1;
 

@@ -1,4 +1,3 @@
-
 on init
 
 sysclktz 0
@@ -16,6 +15,7 @@ loglevel 3
     export EXTERNAL_STORAGE /sdcard
     export BOOTCLASSPATH /system/framework/core.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar
     export TERMINFO /system/etc/terminfo
+    export TERM linux
 
 # Backward compatibility
     symlink /system/etc /etc
@@ -38,6 +38,8 @@ loglevel 3
     write /proc/cpu/alignment 4
     write /proc/sys/kernel/sched_latency_ns 10000000
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
+    write /proc/sys/kernel/sched_compat_yield 1
+    write /proc/sys/kernel/sched_child_runs_first 0
 
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
@@ -67,10 +69,6 @@ loglevel 3
     mount yaffs2 mtd@userdata /data nosuid nodev
     chown system system /data
     chmod 0771 /data
-
-    # Mount compressed filesystems
-    mount squashfs loop@/system/modules/modules.sqf /system/modules ro
-    mount squashfs loop@/system/xbin/xbin.sqf /system/xbin ro
 
     # Create dump dir and collect dumps.
     # Do this before we mount cache so eventually we can use cache for
@@ -394,7 +392,37 @@ service tether_off /system/bin/logwrapper /system/bin/sh /system/bin/usb-tether 
     disabled
     oneshot
 
-# Compcache
+# MemCtl for OpenEclair
+service memctl_0 /system/bin/logwrapper /system/bin/sh /system/bin/memctl disabled
+    disabled
+    oneshot
+
+service memctl_1 /system/bin/logwrapper /system/bin/sh /system/bin/memctl compcache
+    disabled
+    oneshot
+
+service memctl_2 /system/bin/logwrapper /system/bin/sh /system/bin/memctl swap
+    disabled
+    oneshot
+
+service memctl_3 /system/bin/logwrapper /system/bin/sh /system/bin/memctl both
+    disabled
+    oneshot
+
+on property:persist.service.memctl_state=0
+    start memctl_0
+
+on property:persist.service.memctl_state=1
+    start memctl_1
+
+on property:persist.service.memctl_state=2
+    start memctl_2
+
+on property:persist.service.memctl_state=3
+    start memctl_3
+
+
+# CompCache for Other ROMs
 service compcache_on /system/bin/logwrapper /system/bin/sh /system/bin/compcache start
     disabled
     oneshot
